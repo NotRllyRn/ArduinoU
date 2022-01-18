@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "discord.js": "^13.5.1",
+    "dotenv": "^11.0.0",
+    "express": "^4.17.2",
+    "mysql": "^2.18.1",
+    "sellix-api-wrapper": "^1.0.7",
+    "ws": "^8.4.0"
+  },
+	"scripts":  {
+		"start": "node run.js"
+	},
+	"engines": {
+		"node": "16.13.1"
+	}
+}
