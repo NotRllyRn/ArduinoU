@@ -1,21 +1,19 @@
-require('dotenv').config();
-const mysql = require('mysql');
-const Sellix = require('sellix-api-wrapper');
+require('dotenv').config()
+const mysql = require('mysql')
+const Sellix = require('sellix-api-wrapper')
 const express = require('express')
-const { Client, Intents } = require('discord.js');
+const { Client, Intents } = require('discord.js')
 const API = new Sellix.API('ZixQuiL6UYDjYYnUMCXvA44reEo4CNFIeV23xXde9UyY08u4eZqI2TCRkAzseXGF')
-const client = new Client({ intents: ['GUILDS', 'DIRECT_MESSAGES', 'GUILD_MESSAGES'], partials: ['MESSAGE', 'CHANNEL'] });
+const client = new Client({ intents: ['GUILDS', 'DIRECT_MESSAGES', 'GUILD_MESSAGES'], partials: ['MESSAGE', 'CHANNEL'] })
 
 const users_1 = {
-    "422587947972427777": true,
-    "786091287174184960": true,
-    "812464393114877982": true
+    "422587947972427777": true
 }
 
 const prefix = ">"
 const orderid = "61da9afaec2d4"
-const PORT = process.env.PORT;
-const INDEX = '/index.html';
+const INDEX = '/index.html'
+const PORT = process.env.PORT
 
 function checkOrder(orderID, itemID) {
     return API.getOrder(orderID).then(function (result) {
@@ -33,25 +31,25 @@ function checkOrder(orderID, itemID) {
 
 const server = express()
     .use((req, res) => res.sendFile(INDEX, { root: __dirname }))
-    .listen(PORT);
-const { Server } = require('ws');
-const wss = new Server({ server });
+    .listen(PORT)
+const { Server } = require('ws')
+const wss = new Server({ server })
 
 let con = mysql.createConnection({
-    host: "textboxbot.cqf2bgpx7u9h.us-east-1.rds.amazonaws.com",
+    host: "",
     user: "admin",
-    password: "testingpassword",
+    password: "",
     port: 3306,
-    database: "Main"
-});
+    database: "main"
+})
 
 let con2 = mysql.createConnection({
-    host: "textboxbot.cqf2bgpx7u9h.us-east-1.rds.amazonaws.com",
+    host: "",
     user: "admin",
     password: "testingpassword",
     port: 3306,
-    database: "Blacklist"
-});
+    database: "blacklist"
+})
 
 con.connect(function (err) {
     if (err) throw err;
@@ -70,7 +68,7 @@ wss.on('connection', (ws) => {
                 if (err) { console.log(err); return }
                 if (result.length > 0) {
                     ws.send("0 f")
-                    client.channels.cache.get('930740334189752323')
+                    client.channels.cache.get('933071691184230400')
                         .send('Blacklisted Ip.\nIp: ``' + ip + '``\nHwid: ``' + hwid + '``')
                     return
                 }
@@ -79,7 +77,7 @@ wss.on('connection', (ws) => {
                     if (err) { console.log(err); return }
                     if (result.length > 0) {
                         ws.send("0 f")
-                        client.channels.cache.get('930740334189752323')
+                        client.channels.cache.get('933071691184230400')
                             .send('Blacklisted Hwid.\nIp: ``' + ip + '``\nHwid: ``' + hwid + '``')
                         return
                     }
@@ -92,15 +90,15 @@ wss.on('connection', (ws) => {
                             if (hwid_1 && ip_1) {
                                 if ((hwid_1 === hwid) && (ip_1 === ip) && (result[0].whitelist === 1)) {
                                     ws.send("0 t")
-                                    client.channels.cache.get('930740334189752323')
+                                    client.channels.cache.get('933054025040031774')
                                         .send('Executed successfully.\nInvoice: ``' + invoice + '``\nIp: ``' + ip + '``\nHwid: ``' + hwid + '``\nDId: ``' + result[0].did + '``');
                                 } else if ((hwid_1 === hwid) && (ip_1 === ip)) {
                                     ws.send("0 f")
-                                    client.channels.cache.get('930740334189752323')
+                                    client.channels.cache.get('933054025040031774')
                                         .send('Whitelist false.\nInvoice: ``' + invoice + '``\nIp: ``' + ip + '``\nHwid: ``' + hwid + '``')
                                 } else {
                                     ws.send("0 f")
-                                    client.channels.cache.get('930740334189752323')
+                                    client.channels.cache.get('933071691184230400')
                                         .send('<@422587947972427777>\n``' + result[0].did + '``; Potitial sharing of key.\nDefault:\n``' + ip_1 + '``\n``' + hwid_1 + '``\nShare:\n``' + ip + '``\n``' + hwid + '``');
                                 }
                             } else {
@@ -110,7 +108,7 @@ wss.on('connection', (ws) => {
                                 con.query(send, data, function (err) {
                                     if (err) { console.log(err); return }
                                     ws.send("0 t")
-                                    client.channels.cache.get('930740334189752323')
+                                    client.channels.cache.get('933071643637612554')
                                         .send('Executed & claimed.\nInvoice: ``' + invoice + '``\nIp: ``' + ip + '``\nHwid: ``' + hwid + '``\nDId: ``' + result[0].did + '``');
                                 })
                             }
@@ -166,7 +164,7 @@ let commands = {
                                     console.log(err)
                                 } else {
                                     msg.reply("You have been whitelisted!")
-                                    client.channels.cache.get('930740334189752323')
+                                    client.channels.cache.get('933071643637612554')
                                         .send('``' + msg.author.tag + '`` has been whitelisted!\nInvoice: ``' + args[0] + '``')
                                 }
                             })
@@ -309,7 +307,7 @@ let commands = {
                     }
                     msg.reply(sendback.join("\n"))
                 } else {
-                    msg.reply('no data came back. Success?')
+                    msg.reply('No data came back. Success?')
                 }
             })
         } else if (use.toLowerCase() === "blacklist") {
@@ -340,7 +338,7 @@ let commands = {
         wss.clients.forEach( function (client1) {
             client1.send('1 ' + message)
         })
-        msg.reply('Message sent to all users successfully.')
+        msg.reply('Message sent to ' + wss.clients.size + ' user(s) successfully.')
     },
     active: function (msg, args) {
         msg.reply('There are currently ' + wss.clients.size + ' user(s) using the script.')
