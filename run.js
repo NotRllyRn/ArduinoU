@@ -2,7 +2,7 @@ require('dotenv').config()
 const mysql = require('mysql')
 const Sellix = require('sellix-api-wrapper')
 const express = require('express')
-const { Client, Intents } = require('discord.js')
+const { Client } = require('discord.js')
 const API = new Sellix.API('ZixQuiL6UYDjYYnUMCXvA44reEo4CNFIeV23xXde9UyY08u4eZqI2TCRkAzseXGF')
 const client = new Client({ intents: ['GUILDS', 'DIRECT_MESSAGES', 'GUILD_MESSAGES'], partials: ['MESSAGE', 'CHANNEL'] })
 
@@ -335,7 +335,7 @@ let commands = {
         if (args.length < 1) { msg.reply('Message required.'); return }
         if (wss.clients.size === 0) { msg.reply('There are no connected clients right now.'); return }
         let message = args.join(" ")
-        wss.clients.forEach( function (client1) {
+        wss.clients.forEach(function (client1) {
             client1.send('1 ' + message)
         })
         msg.reply('Message sent to ' + wss.clients.size + ' user(s) successfully.')
