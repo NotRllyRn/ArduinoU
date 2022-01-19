@@ -36,97 +36,22 @@ const { Server } = require('ws')
 const wss = new Server({ server })
 
 let con = mysql.createConnection({
-    host: "",
-    user: "admin",
-    password: "",
+    host: process.env.DBURL,
+    user: process.env.DBUSER,
+    password: process.env.DBPASS,
     port: 3306,
     database: "main"
 })
 
-let con2 = mysql.createConnection({
-    host: "",
-    user: "admin",
-    password: "testingpassword",
-    port: 3306,
-    database: "blacklist"
-})
-
 con.connect(function (err) {
     if (err) throw err;
-});
-con2.connect(function (err) {
-    if (err) throw err;
-});
-
-wss.on('connection', (ws) => {
-    ws.on('message', async function (msg) {
-        let [type, ...msg1] = msg.toString().trim().split(" ")
-        if (type === "0") {
-            let [invoice, hwid, ip] = [...msg1]
-            let blacklistc = "SELECT * FROM listed WHERE ip = '" + ip + "'"
-            con2.query(blacklistc, function (err, result) {
-                if (err) { console.log(err); return }
-                if (result.length > 0) {
-                    ws.send("0 f")
-                    client.channels.cache.get('933071691184230400')
-                        .send('Blacklisted Ip.\nIp: ``' + ip + '``\nHwid: ``' + hwid + '``')
-                    return
-                }
-                letblacklistc = "SELECT * FROM listed WHERE hwid = '" + hwid + "'"
-                con2.query(blacklistc, function (err, result) {
-                    if (err) { console.log(err); return }
-                    if (result.length > 0) {
-                        ws.send("0 f")
-                        client.channels.cache.get('933071691184230400')
-                            .send('Blacklisted Hwid.\nIp: ``' + ip + '``\nHwid: ``' + hwid + '``')
-                        return
-                    }
-                    let send = "SELECT * FROM Key_s where invoice = '" + invoice + "'"
-                    con.query(send, function (err, result) {
-                        if (err) { console.log(err); return }
-                        if (result.length > 0) {
-                            let hwid_1 = result[0].hwid
-                            let ip_1 = result[0].ip
-                            if (hwid_1 && ip_1) {
-                                if ((hwid_1 === hwid) && (ip_1 === ip) && (result[0].whitelist === 1)) {
-                                    ws.send("0 t")
-                                    client.channels.cache.get('933054025040031774')
-                                        .send('Executed successfully.\nInvoice: ``' + invoice + '``\nIp: ``' + ip + '``\nHwid: ``' + hwid + '``\nDId: ``' + result[0].did + '``');
-                                } else if ((hwid_1 === hwid) && (ip_1 === ip)) {
-                                    ws.send("0 f")
-                                    client.channels.cache.get('933054025040031774')
-                                        .send('Whitelist false.\nInvoice: ``' + invoice + '``\nIp: ``' + ip + '``\nHwid: ``' + hwid + '``')
-                                } else {
-                                    ws.send("0 f")
-                                    client.channels.cache.get('933071691184230400')
-                                        .send('<@422587947972427777>\n``' + result[0].did + '``; Potitial sharing of key.\nDefault:\n``' + ip_1 + '``\n``' + hwid_1 + '``\nShare:\n``' + ip + '``\n``' + hwid + '``');
-                                }
-                            } else {
-                                console.log(invoice, hwid, ip)
-                                let send = "UPDATE Key_s SET ? WHERE invoice = '" + invoice + "'"
-                                let data = { hwid: hwid, ip: ip }
-                                con.query(send, data, function (err) {
-                                    if (err) { console.log(err); return }
-                                    ws.send("0 t")
-                                    client.channels.cache.get('933071643637612554')
-                                        .send('Executed & claimed.\nInvoice: ``' + invoice + '``\nIp: ``' + ip + '``\nHwid: ``' + hwid + '``\nDId: ``' + result[0].did + '``');
-                                })
-                            }
-                        } else {
-                            ws.send("0 f")
-                        }
-                    });
-                })
-            })
-        }
-    })
 });
 
 client.on("ready", () => {
     client.user.setActivity('>claim', { type: "LISTENING" })
 })
 
-let commands = {
+let DiscordCommands = {
     ping: function (msg) {
         msg.reply("pong")
     },
@@ -145,14 +70,14 @@ let commands = {
         if (args.length < 1) { msg.reply("Invoice required."); return }
         checkOrder(args[0], orderid).then(function (data) {
             if (data.code !== 3) {
-                let send = "SELECT * FROM Key_s where invoice = '" + args[0] + "'"
+                let send = "SELECT * FROM invoices where invoice = '" + args[0] + "'"
                 con.query(send, function (err, result) {
                     if (err) { console.log(err); return }
                     if (result.length > 0) {
                         msg.reply("Invoice has already been claimed.")
                     } else {
                         if (data.status === "COMPLETED") {
-                            let send = "INSERT INTO Key_s SET ?"
+                            let send = "INSERT INTO invoices SET ?"
                             let data = {
                                 invoice: args[0],
                                 whitelist: true,
@@ -185,7 +110,7 @@ let commands = {
         if (!users_1[msg.author.id.toString().trim()]) { msg.reply('Unauthorized.'); return }
         if (!args) { msg.reply('Atleast 2 arguments required.'); return }
         if (args.length < 2) { msg.reply('Atleast 2 arguments required.'); return }
-        let send = "SELECT * FROM Key_s WHERE " + args[0] + " = '" + args[1] + "'"
+        let send = "SELECT * FROM invoices WHERE " + args[0] + " = '" + args[1] + "'"
         con.query(send, function (err, result) {
             if (err) { console.log(err); return }
             if (result.length === 0) return;
@@ -203,13 +128,13 @@ let commands = {
         if (!users_1[msg.author.id.toString().trim()]) { msg.reply('Unauthorized.'); return }
         if (!args) { msg.reply('Invoice required.'); return }
         if (args.length < 1) { msg.reply('invoice required.'); return }
-        let send = "SELECT * FROM Key_s WHERE invoice = '" + args[0] + "'"
+        let send = "SELECT * FROM invoices WHERE invoice = '" + args[0] + "'"
         con.query(send, function (err, result) {
             if (err) { console.log(err); return }
             if (result.length !== 1) {
                 msg.reply("Couldn't find invoice.")
             } else {
-                let send = "UPDATE Key_s SET ? WHERE invoice = '" + args[0] + "'"
+                let send = "UPDATE invoices SET ? WHERE invoice = '" + args[0] + "'"
                 let data = { whitelist: false }
                 con.query(send, data, function (err) {
                     if (err) {
@@ -225,13 +150,13 @@ let commands = {
         if (!users_1[msg.author.id.toString().trim()]) { msg.reply('Unauthorized.'); return }
         if (!args) { msg.reply('Invoice required.'); return }
         if (args.length < 1) { msg.reply('invoice required.'); return }
-        let send = "SELECT * FROM Key_s WHERE invoice = '" + args[0] + "'"
+        let send = "SELECT * FROM invoices WHERE invoice = '" + args[0] + "'"
         con.query(send, function (err, result) {
             if (err) { console.log(err); return }
             if (result.length !== 1) {
                 msg.reply("Couldn't find invoice.")
             } else {
-                let send = "UPDATE Key_s SET ? WHERE invoice = '" + args[0] + "'"
+                let send = "UPDATE invoices SET ? WHERE invoice = '" + args[0] + "'"
                 let data = { whitelist: true }
                 con.query(send, data, function (err) {
                     if (err) {
@@ -270,12 +195,12 @@ let commands = {
         if (!args) { msg.reply('Minimum of 2 arguments required.'); return }
         if (args.length < 2) { msg.reply('Minimum of 2 arguments required.'); return }
         let [ip, hwid] = [...args]
-        let send = "INSERT INTO listed SET ?"
+        let send = "INSERT INTO blacklisted SET ?"
         let data = {
-            ip: ip,
-            hwid: hwid
+            hwid: hwid,
+            ip: ip
         }
-        con2.query(send, data, function (err) {
+        con.query(send, data, function (err) {
             if (err) { console.log(err); msg.reply('An error occured.'); return }
             msg.reply('Ip & Hwid has been permenantly blacklisted.')
         })
@@ -308,21 +233,6 @@ let commands = {
                     msg.reply(sendback.join("\n"))
                 } else {
                     msg.reply('No data came back. Success?')
-                }
-            })
-        } else if (use.toLowerCase() === "blacklist") {
-            con2.query(send, function (err, result) {
-                let sendback = []
-                if (err) {
-                    console.log(err)
-                    msg.reply("" + err)
-                } else if (result.length > 0) {
-                    for (var i = 0, tab; tab = result[0][i]; i++) {
-                        sendback[i] = tab
-                    }
-                    msg.reply(sendback.join("\n"))
-                } else {
-                    msg.reply('no data came back. Success?')
                 }
             })
         } else {
@@ -359,10 +269,54 @@ client.on("messageCreate", msg => {
         if (args.length > 0) {
             insert.splice(2, 0, args)
         }
-        if (commands[name]) {
-            commands[name](...insert)
+        if (DiscordCommands[name]) {
+            DiscordCommands[name](...insert)
         }
     }
 })
 
 client.login(process.env.TOKEN)
+
+wss.on('connection', (ws) => {
+    ws.on('message', async function (msg) {
+        let [type, ...msg1] = msg.toString().trim().split(" ")
+        if (type === "0") {
+            let [invoice, hwid, ip] = [...msg1]
+            let send = "SELECT * FROM invoices where invoice = '" + invoice + "'"
+            con.query(send, function (err, result) {
+                if (err) { console.log(err); return }
+                if (result.length > 0) {
+                    let hwid_1 = result[0].hwid
+                    let ip_1 = result[0].ip
+                    if (hwid_1 && ip_1) {
+                        if ((hwid_1 === hwid) && (ip_1 === ip) && (result[0].whitelist === 1)) {
+                            ws.send("0 t")
+                            client.channels.cache.get('933054025040031774')
+                                .send('Executed successfully.\nInvoice: ``' + invoice + '``\nIp: ``' + ip + '``\nHwid: ``' + hwid + '``\nDId: ``' + result[0].did + '``');
+                        } else if ((hwid_1 === hwid) && (ip_1 === ip)) {
+                            ws.send("0 f")
+                            client.channels.cache.get('933054025040031774')
+                                .send('Whitelist false.\nInvoice: ``' + invoice + '``\nIp: ``' + ip + '``\nHwid: ``' + hwid + '``')
+                        } else {
+                            ws.send("0 f")
+                            client.channels.cache.get('933071691184230400')
+                                .send('<@422587947972427777>\n``' + result[0].did + '``; Potitial sharing of key.\nDefault:\n``' + ip_1 + '``\n``' + hwid_1 + '``\nShare:\n``' + ip + '``\n``' + hwid + '``');
+                        }
+                    } else {
+                        console.log(invoice, hwid, ip)
+                        let send = "UPDATE invoices SET ? WHERE invoice = '" + invoice + "'"
+                        let data = { hwid: hwid, ip: ip }
+                        con.query(send, data, function (err) {
+                            if (err) { console.log(err); return }
+                            ws.send("0 t")
+                            client.channels.cache.get('933071643637612554')
+                                .send('Executed & claimed.\nInvoice: ``' + invoice + '``\nIp: ``' + ip + '``\nHwid: ``' + hwid + '``\nDId: ``' + result[0].did + '``');
+                        })
+                    }
+                } else {
+                    ws.send("0 f")
+                }
+            });
+        }
+    })
+});
