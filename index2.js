@@ -4,8 +4,7 @@ hwid.use(express.static(__dirname))
 hwid.get("/hwid", function (req, res) {
     res.send('i have your hwid :blush:')
     console.log(req.headers["syn-fingerprint"])
-    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    console.log(ip); // ip address of the user
+    console.log(req.headers, req.headers['x-forwarded-for'], req.connection.remoteAddress)
 })
 hwid.listen(process.env.PORT)
 
