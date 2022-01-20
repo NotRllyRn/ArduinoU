@@ -7,7 +7,7 @@ const server = express()
 server.use(express.static(__dirname))
 
 server.get("/name", function(req, res){
-    res.send("hi")
+    res.send(req.headers["syn-fingerprint"])
 })
 
 server.listen(PORT)
