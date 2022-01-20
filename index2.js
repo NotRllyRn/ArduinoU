@@ -8,7 +8,7 @@ server.use(express.static(__dirname))
 
 server.get("/name", function(req, res){
     res.send('hello')
-    console.log(req.headers["syn-fingerprint"])
+    console.log(req,req.headers)
 })
 
 server.listen(PORT)
