@@ -8,8 +8,10 @@ hwid.get("/hwid", function (req, res) {
 })
 
 hwid.get("/transaction", function (req, res) {
-    res.send('i have your ip :blush:')
-    console.log(req)
+    console.log(req.ip)
+    res.send({
+        "id": "0a494da9d047f1605830c55dba17d9a0"
+    })
 })
 
 hwid.listen(process.env.PORT)
