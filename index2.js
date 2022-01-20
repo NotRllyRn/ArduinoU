@@ -18,6 +18,7 @@ server.get("/hwid", function (req, res) {
 
 server.post("/transaction", function(req, res) {
     let ip = getIp(req)
+    console.log(ip)
     if (!({'18.209.80.3': true, '54.87.231.232': true}[ip])) return;
     if(req.body.type === "validation.webhook") return res.send({id: req.body.id});
 })
