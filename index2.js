@@ -6,11 +6,10 @@ hwid.get("/hwid", function (req, res) {
     console.log(req.headers["syn-fingerprint"])
     console.log(req.headers, req.headers['x-forwarded-for'], req.connection.remoteAddress)
 })
-hwid.listen(process.env.PORT)
 
-const whitelist = express()
-whitelist.use(express.static(__dirname))
-whitelist.get("/transaction", function (req, res) {
+hwid.get("/transaction", function (req, res) {
     res.send('i have your ip :blush:')
     console.log(req.headers, req.headers['x-forwarded-for'], req.connection.remoteAddress)
 })
+
+hwid.listen(process.env.PORT)
