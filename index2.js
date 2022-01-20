@@ -1,14 +1,16 @@
 const express = require('express')
-
-const INDEX = '/index.html'
-const PORT = process.env.PORT
-
-const server = express()
-server.use(express.static(__dirname))
-
-server.get("/name", function(req, res){
-    res.send('hello')
-    console.log(req,req.headers)
+const hwid = express()
+hwid.use(express.static(__dirname))
+hwid.get("/hwid", function(req, res){
+    res.send('i have your hwid :blush:')
+    console.log(req.headers["syn-fingerprint"])
+    console.log(req.socket.remoteAddress )
 })
+hwid.listen(process.env.PORT)
 
-server.listen(PORT)
+const whitelist = express()
+whitelist.use(express.static(__dirname))
+whitelist.get("/transaction", function(req, res){
+    res.send('i have your ip :blush:')
+    console.log(req.socket.remoteAddress )
+})
