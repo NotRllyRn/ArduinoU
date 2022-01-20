@@ -8,9 +8,9 @@ hwid.get("/hwid", function (req, res) {
 })
 
 hwid.get("/transaction", function (req, res) {
-    console.log(req.ip)
+    console.log(req)
     res.send({
-        "id": "0a494da9d047f1605830c55dba17d9a0"
+        "id": "0a494da9d047f1605830c55dba17d9a0`"
     })
 })
 
