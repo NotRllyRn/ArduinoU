@@ -7,11 +7,11 @@ hwid.get("/hwid", function (req, res) {
     console.log(req.headers['x-forwarded-for'])
 })
 
-hwid.get("/transaction", function (req, res) {
-    console.log(req)
-    res.send({
-        "id": "0a494da9d047f1605830c55dba17d9a0`"
-    })
+hwid.use(express.json())
+
+hwid.post("/transaction", function(req, res) {
+    if(req.body.type === "validation.webhook")
+        return res.send({id: req.body.id})
 })
 
 hwid.listen(process.env.PORT)
