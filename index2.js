@@ -46,8 +46,9 @@ server.post('/transaction', async function (req, res) {
 
     if (!({ '18.209.80.3': true, '54.87.231.232': true }[getIp(req)])) return;
     if (content.type === 'validation.webhook') return res.send({ id: content.id });
-
+    console.log(content)
     if ((content.type === 'payment.completed') && (content.subject.status.description === 'Complete')) {
+        console.log('we in')
         let tbxid = content.subject.transaction_id;
         let ip = content.subject.customer.ip;
         let userid = content.subject.customer.username.id;
