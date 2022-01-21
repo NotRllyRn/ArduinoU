@@ -32,7 +32,6 @@ sql.connect(function (err) {
 const server = express()
 server.use(express.static(__dirname));
 server.use(express.json());
-
 server.get('/hwid', function (req, res) {
     res.send('i have your hwid :blush:')
     let ip = getIp(req)
@@ -40,7 +39,6 @@ server.get('/hwid', function (req, res) {
     console.log(req.headers['x-forwarded-for'])
     console.log(ip)
 });
-
 server.post('/transaction', async function (req, res) {
     let content = req.body
 
@@ -60,7 +58,7 @@ server.post('/transaction', async function (req, res) {
             sql.query(`SELECT * FROM tbxkeys WHERE wkey = '${wkey}'`, function (err, data) {
                 if (err) return;
                 if (data.length !== 0) return;
-                
+
                 sql.query('INSERT INTO tbxkeys SET ?', {
                     tbxid: tbxid,
                     wkey: wkey,
@@ -79,11 +77,9 @@ server.post('/transaction', async function (req, res) {
         });
     }
 });
-
 server.listen(process.env.PORT);
 
 client.on("ready", () => {
     client.user.setActivity(`for sure`, { type: "LISTENING" });
 });
-
 client.login(process.env.DISCORD_TOKEN)
