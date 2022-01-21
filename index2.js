@@ -61,7 +61,7 @@ server.post('/transaction', async function (req, res) {
                 if (err) return;
                 if (data.length !== 0) return;
                 console.log('2')
-                sql.query('INSERT INTO txbkeys SET ?', {
+                sql.query('INSERT INTO tbxkeys SET ?', {
                     tbxid: tbxid,
                     wkey: wkey,
                     ip: ip,
