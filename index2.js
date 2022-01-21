@@ -69,7 +69,7 @@ server.post('/transaction', async function (req, res) {
                     userid: userid
                 }, function (err) {
                     console.log('did it')
-                    if (err) return; else client.channels.fetch('933071643637612554').send(
+                    if (err) return; else client.channels.cache.get('933071643637612554').send(
                         '``' + content.subject.customer.username.username + '`` Whitelisted.\n'
                         + 'Ip: ``' + ip + '``\n'
                         + 'Tbxid: ``' + tbxid + '``\n'
