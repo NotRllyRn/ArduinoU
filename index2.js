@@ -46,21 +46,21 @@ server.post('/transaction', async function (req, res) {
 
     if (!({ '18.209.80.3': true, '54.87.231.232': true }[getIp(req)])) return;
     if (content.type === 'validation.webhook') return res.send({ id: content.id });
-    console.log(content)
+
     if ((content.type === 'payment.completed') && (content.subject.status.description === 'Complete')) {
-        console.log('we in')
         let tbxid = content.subject.transaction_id;
         let ip = content.subject.customer.ip;
         let userid = content.subject.customer.username.id;
         let wkey = crypto.randomBytes(24).toString("hex");
+
         sql.query(`SELECT * FROM tbxkeys WHERE tbxid = '${tbxid}'`, function (err, data) {
             if (err) return;
             if (data.length !== 0) return;
-            console.log('1')
+
             sql.query(`SELECT * FROM tbxkeys WHERE wkey = '${wkey}'`, function (err, data) {
                 if (err) return;
                 if (data.length !== 0) return;
-                console.log('2')
+                
                 sql.query('INSERT INTO tbxkeys SET ?', {
                     tbxid: tbxid,
                     wkey: wkey,
@@ -68,7 +68,6 @@ server.post('/transaction', async function (req, res) {
                     whitelist: true,
                     userid: userid
                 }, function (err) {
-                    console.log('did it')
                     if (err) return; else client.channels.cache.get('933071643637612554').send(
                         '``' + content.subject.customer.username.username + '`` Whitelisted.\n'
                         + 'Ip: ``' + ip + '``\n'
