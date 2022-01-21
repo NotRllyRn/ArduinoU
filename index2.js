@@ -13,7 +13,7 @@ function getIp(req) {
     let ip = (req.headers['x-forwarded-for'] || '').split(',').pop().trim();
     return ip
 }
-function sendChannel(id,msg) {
+function sendChannel(id, msg) {
     client.channels.fetch(id).send(msg)
 }
 
@@ -53,34 +53,27 @@ server.post('/transaction', async function (req, res) {
         let ip = content.subject.customer.ip;
         let userid = content.subject.customer.username.id;
         let wkey = crypto.randomBytes(24).toString("hex");
-
-        let pass = false
-        await sql.query(`SELECT * FROM tbxkeys WHERE tbxid = '${tbxid}'`, function (err, data) {
-            if (err) { pass = false; return; }
-            console.log('1')
-            if (data.length === 0) pass = true; else pass = false;
-        });
-        await sql.query(`SELECT * FROM tbxkeys WHERE wkey = '${wkey}'`, function (err, data) {
-            if (err || !pass) { pass = false; return; }
-            console.log('2')
-            if (data.length === 0) pass = true; else pass = false;
-        })
-        console.log(pass)
-        if (!pass) return;
-
-        sql.query('INSERT INTO txbkeys SET ?',{
-            tbxid: tbxid,
-            wkey: wkey,
-            ip: ip,
-            whitelist: true,
-            userid: userid
-        }, function(err) {
-            if (err) return; else sendChannel('933071643637612554',
-                '``' + connect.subject.customer.username.username + '`` Whitelisted.\n'
-                + 'Ip: ``' + ip + '``\n'
-                + 'Tbxid: ``' + tbxid + '``\n'
-                + 'UserId: ``' + userid + '``'
-            );
+        sql.query(`SELECT * FROM tbxkeys WHERE tbxid = '${tbxid}'`, function (err, data) {
+            if (err) return;
+            if (data.length !== 0) return;
+            sql.query(`SELECT * FROM tbxkeys WHERE wkey = '${wkey}'`, function (err, data) {
+                if (err) return;
+                if (data.length !== 0) return;
+                sql.query('INSERT INTO txbkeys SET ?', {
+                    tbxid: tbxid,
+                    wkey: wkey,
+                    ip: ip,
+                    whitelist: true,
+                    userid: userid
+                }, function (err) {
+                    if (err) return; else sendChannel('933071643637612554',
+                        '``' + connect.subject.customer.username.username + '`` Whitelisted.\n'
+                        + 'Ip: ``' + ip + '``\n'
+                        + 'Tbxid: ``' + tbxid + '``\n'
+                        + 'UserId: ``' + userid + '``'
+                    );
+                });
+            })
         });
     }
 });
