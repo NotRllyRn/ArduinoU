@@ -20,6 +20,10 @@ let sql = mysql.createConnection({
     database: "main"
 })
 
+.connect(function (err) {
+    if (err) throw err;
+    console.log('connected')
+});
 const server = express()
 server.use(express.static(__dirname));
 server.use(express.json());
