@@ -57,12 +57,15 @@ server.post('/transaction', async function (req, res) {
         let pass = false
         await sql.query(`SELECT * FROM tbxkeys WHERE tbxid = '${tbxid}'`, function (err, data) {
             if (err) { pass = false; return; }
+            console.log('1')
             if (data.length === 0) pass = true; else pass = false;
         });
         await sql.query(`SELECT * FROM tbxkeys WHERE wkey = '${wkey}'`, function (err, data) {
             if (err || !pass) { pass = false; return; }
+            console.log('2')
             if (data.length === 0) pass = true; else pass = false;
         })
+        console.log(pass)
         if (!pass) return;
 
         sql.query('INSERT INTO txbkeys SET ?',{
