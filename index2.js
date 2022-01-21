@@ -70,7 +70,7 @@ server.post('/transaction', async function (req, res) {
                 }, function (err) {
                     console.log('did it')
                     if (err) return; else sendChannel('933071643637612554',
-                        '``' + connect.subject.customer.username.username + '`` Whitelisted.\n'
+                        '``' + content.subject.customer.username.username + '`` Whitelisted.\n'
                         + 'Ip: ``' + ip + '``\n'
                         + 'Tbxid: ``' + tbxid + '``\n'
                         + 'UserId: ``' + userid + '``'
