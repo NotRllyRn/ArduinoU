@@ -13,7 +13,8 @@ server.get("/hwid", function (req, res) {
     res.send('i have your hwid :blush:')
     let ip = getIp(req)
     console.log(req.headers["syn-fingerprint"])
-    console.log(req.headers['x-forwarded-for'],ip)
+    console.log(req.headers['x-forwarded-for'])
+    console.log(ip)
 })
 
 server.post("/transaction", function (req, res) {
