@@ -56,9 +56,11 @@ server.post('/transaction', async function (req, res) {
         sql.query(`SELECT * FROM tbxkeys WHERE tbxid = '${tbxid}'`, function (err, data) {
             if (err) return;
             if (data.length !== 0) return;
+            console.log('1')
             sql.query(`SELECT * FROM tbxkeys WHERE wkey = '${wkey}'`, function (err, data) {
                 if (err) return;
                 if (data.length !== 0) return;
+                console.log('2')
                 sql.query('INSERT INTO txbkeys SET ?', {
                     tbxid: tbxid,
                     wkey: wkey,
@@ -66,6 +68,7 @@ server.post('/transaction', async function (req, res) {
                     whitelist: true,
                     userid: userid
                 }, function (err) {
+                    console.log('did it')
                     if (err) return; else sendChannel('933071643637612554',
                         '``' + connect.subject.customer.username.username + '`` Whitelisted.\n'
                         + 'Ip: ``' + ip + '``\n'
