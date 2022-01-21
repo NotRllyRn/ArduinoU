@@ -72,8 +72,8 @@ server.post('/transaction', async function (req, res) {
                     if (err) return; else client.channels.cache.get('933071643637612554').send(
                         '``' + content.subject.customer.username.username + '`` Whitelisted.\n'
                         + 'Ip: ``' + ip + '``\n'
-                        + 'Tbxid: ``' + tbxid + '``\n'
-                        + 'UserId: ``' + userid + '``'
+                        + 'TbxID: ``' + tbxid + '``\n'
+                        + 'UserID: ``' + userid + '``'
                     );
                 });
             })
