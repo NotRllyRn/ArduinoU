@@ -87,4 +87,4 @@ client.on("ready", () => {
     client.user.setActivity(`for sure`, { type: "LISTENING" });
 });
 
-client.login(DISCORD_TOKEN)
+client.login(process.env.DISCORD_TOKEN)
