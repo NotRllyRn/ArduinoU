@@ -30,7 +30,7 @@ sql.connect(function (err) {
 });
 
 const server = express()
-server.use(express.static(__dirname));
+server.use(express.static(__dirname + "/site"));
 server.use(express.json());
 server.get('/hwid', function (req, res) {
     res.send('i have your hwid :blush:')
