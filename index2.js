@@ -51,11 +51,11 @@ server.post('/transaction', function (req, res) {
         let userid = content.subject.customer.username.id;
         let wkey = crypto.randomBytes(24).toString("hex");
 
-        sql.query(`SELECT * FROM tbxkeys WHERE tbxid = '${tbxid}'`, function (err, data) {
+        sql.query(`SELECT * FROM tbxkeys WHERE tbxid = ${tbxid}`, function (err, data) {
             if (err) return;
             if (data.length !== 0) return;
 
-            sql.query(`SELECT * FROM tbxkeys WHERE wkey = '${wkey}'`, function (err, data) {
+            sql.query(`SELECT * FROM tbxkeys WHERE wkey = ${wkey}`, function (err, data) {
                 if (err) return;
                 if (data.length !== 0) return;
 
@@ -77,7 +77,7 @@ server.post('/transaction', function (req, res) {
         });
     }
 });
-server.post('/login', function (req, res) {
+server.get('/login', function (req, res) {
     let content = req.body;
     console.log(content);
     if (!({ '18.209.80.3': true, '54.87.231.232': true }[getIp(req)])) return;
