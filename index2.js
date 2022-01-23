@@ -78,12 +78,10 @@ server.post('/transaction', function (req, res) {
     }
 });
 server.post('/login', function (req, res) {
-    let content = req.body
-    
+    let content = req.body;
+    console.log(content);
     if (!({ '18.209.80.3': true, '54.87.231.232': true }[getIp(req)])) return;
     if (content.type === 'validation.webhook') return res.send({ id: content.id });
-
-    console.log(content)
 });
 server.listen(process.env.PORT);
 
