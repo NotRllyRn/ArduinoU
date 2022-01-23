@@ -86,7 +86,7 @@ server.get('/login', function (req, res) {
     if (!({ '18.209.80.3': true, '54.87.231.232': true }[getIp(req)])) return;
     let uuid = (req.url).toString().split('=').pop().trim();
 
-    if (client.guilds.get('933052164992020481').member(uuid)) {
+    if (client.guilds.fetch('933052164992020481').member(uuid)) {
         res.send({
             verified: true
         });
