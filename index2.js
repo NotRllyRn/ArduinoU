@@ -60,7 +60,7 @@ server.post('/transaction', function (req, res) {
                     if (err) return;
                     if (data.length !== 0) {
                         wkey = crypto.randomBytes(24).toString("hex");
-                        checkkey()
+                        checkkey();
                     } else {
                         sql.query('INSERT INTO tbxkeys SET ?', {
                             tbxid: tbxid,
@@ -77,15 +77,25 @@ server.post('/transaction', function (req, res) {
                             );
                         });
                     }
-                })
+                });
             }
         });
     }
 });
 server.get('/login', function (req, res) {
     if (!({ '18.209.80.3': true, '54.87.231.232': true }[getIp(req)])) return;
+    let uuid = (req.url).toString().split('=').pop().trim();
 
-    console.log(req.url)
+    if (client.guilds.get('933052164992020481').member(uuid)) {
+        res.send({
+            verified: true
+        });
+    } else {
+        res.send({
+            verified: false,
+            message: 'join the discord server: https://discord.gg/DC3x6V8TpP'
+        });
+    }
 });
 server.listen(process.env.PORT);
 
