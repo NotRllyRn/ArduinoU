@@ -83,8 +83,9 @@ server.post('/transaction', function (req, res) {
     }
 });
 server.get('/login', function (req, res) {
-    console.log(req)
     if (!({ '18.209.80.3': true, '54.87.231.232': true }[getIp(req)])) return;
+
+    console.log(req.url)
 });
 server.listen(process.env.PORT);
 
