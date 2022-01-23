@@ -39,7 +39,7 @@ server.get('/hwid', function (req, res) {
     console.log(req.headers['x-forwarded-for'])
     console.log(ip)
 });
-server.post('/transaction', async function (req, res) {
+server.post('/transaction', function (req, res) {
     let content = req.body
 
     if (!({ '18.209.80.3': true, '54.87.231.232': true }[getIp(req)])) return;
@@ -76,6 +76,14 @@ server.post('/transaction', async function (req, res) {
             })
         });
     }
+});
+server.post('/login', function (req, res) {
+    let content = req.body
+    
+    if (!({ '18.209.80.3': true, '54.87.231.232': true }[getIp(req)])) return;
+    if (content.type === 'validation.webhook') return res.send({ id: content.id });
+
+    console.log(content)
 });
 server.listen(process.env.PORT);
 
