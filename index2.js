@@ -36,10 +36,10 @@ const server = express()
 server.use(express.static(__dirname + "/site"));
 server.use(express.json());
 server.post('/execute', function (req, res) {
-    let content = req.Body;
+    let content = req.body;
     let ip = getIp(req);
     let hwid = req.headers['syn-fingerprint'];
-    console.log(content)
+    console.log(content,req)
     if (!content || !ip || !hwid || !content.wkey) return res.send({ w: false, m: "Invalid key." });
     let wkey = content.wkey;
 
