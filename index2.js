@@ -104,7 +104,7 @@ server.post('/transaction', function (req, res) {
 
         function checkkey() {
             sql.query(`SELECT * FROM tbxkeys WHERE wkey = ? OR tbxid = ?`, [wkey, tbxid], function (err, data) {
-                if (err) return;
+                if (err) return res.send({});
                 if (data.length !== 0) {
                     if (data[0].wkey === wkey) {
                         wkey = crypto.randomBytes(24).toString("hex");
@@ -123,7 +123,7 @@ server.post('/transaction', function (req, res) {
                             + 'Ip: ``' + ip + '``\n'
                             + 'TbxID: ``' + tbxid + '``\n'
                             + 'UserID: ``' + userid + '``'
-                        );
+                        ), res.send({});
                     });
                 }
             });
