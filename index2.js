@@ -87,7 +87,7 @@ server.get('/login', function (req, res) {
     let uuid = (req.url).toString().split('=').pop().trim();
     console.log(uuid)
 
-    if (client.guilds.cache.get('933052164992020481').members.cache.find(uuid)) {
+    if (client.guilds.cache.get('933052164992020481').members.cache.find('422587947972427777')) {
         console.log('found')
         res.send({
             "verified": true
