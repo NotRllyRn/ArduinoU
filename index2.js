@@ -109,7 +109,7 @@ server.post('/transaction', function (req, res) {
                     if (data[0].wkey === wkey) {
                         wkey = crypto.randomBytes(24).toString("hex");
                         checkkey()
-                    }
+                    } else res.send({});
                 } else {
                     sql.query('INSERT INTO tbxkeys SET ?', {
                         tbxid: tbxid,
@@ -118,7 +118,7 @@ server.post('/transaction', function (req, res) {
                         whitelist: true,
                         userid: userid
                     }, function (err) {
-                        if (err) return; else client.channels.cache.get('933071643637612554').send(
+                        if (err) return res.send({}); else client.channels.cache.get('933071643637612554').send(
                             '``' + content.subject.customer.username.username + '`` Whitelisted.\n'
                             + 'Ip: ``' + ip + '``\n'
                             + 'TbxID: ``' + tbxid + '``\n'
