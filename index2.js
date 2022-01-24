@@ -2,7 +2,7 @@ require('dotenv').config()
 const crypto = require("crypto");
 const mysql = require('mysql')
 const express = require('express')
-const Client = require('discord.js')
+const { Client } = require('discord.js')
 const client = new Client({
     intents: ['GUILDS', 'DIRECT_MESSAGES', 'GUILD_MESSAGES'],
     partials: ['MESSAGE', 'CHANNEL']
