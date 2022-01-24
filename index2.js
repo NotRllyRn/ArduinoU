@@ -43,6 +43,8 @@ server.post('/execute', function (req, res) {
     if (!content || !ip || !hwid || !content.wkey) return;
     let wkey = content.wkey;
 
+    console.log(wkey)
+
     sql.query('SELECT * FROM tbxkeys WHERE wkey = ?', [wkey], function (err, data) {
         if (err) return;
         if (data.length !== 0) return res.send({ w: false, m: "Invalid key." });
