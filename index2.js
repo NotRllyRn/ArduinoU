@@ -85,8 +85,10 @@ server.post('/transaction', function (req, res) {
 server.get('/login', function (req, res) {
     if (!({ '18.209.80.3': true, '54.87.231.232': true }[getIp(req)])) return;
     let uuid = (req.url).toString().split('=').pop().trim();
+    console.log(uuid)
 
     if (client.guilds.cache.get('933052164992020481').members.cache.get(uuid)) {
+        console.log('found')
         res.send({
             verified: true
         });
@@ -95,6 +97,7 @@ server.get('/login', function (req, res) {
             verified: false,
             message: 'join the discord server: https://discord.gg/DC3x6V8TpP'
         });
+        console.log('not found')
     }
 });
 server.listen(process.env.PORT);
