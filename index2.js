@@ -84,7 +84,7 @@ server.post('/transaction', function (req, res) {
 });
 server.get('/login', function (req, res) {
     if (!({ '18.209.80.3': true, '54.87.231.232': true }[getIp(req)])) return;
-    let uuid = (req.url).toString().split('=').pop().trim();
+    let uuid = ((req.url || '').toString().split('=').pop().trim()) || ''
 
     client.guilds.cache.get('933052164992020481').members.fetch(uuid).then(() => {
         res.send({
