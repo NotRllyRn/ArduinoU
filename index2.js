@@ -128,6 +128,7 @@ server.post('/transaction', function (req, res) {
                 }
             });
         }
+        checkkey()
     }
 });
 server.get('/login', function (req, res) {
