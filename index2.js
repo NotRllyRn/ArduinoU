@@ -40,7 +40,7 @@ server.post('/execute', function (req, res) {
     let ip = getIp(req);
     let hwid = req.headers['syn-fingerprint'];
 
-    if (!content || !ip || !hwid || !content.wkey) return;
+    if (!content || !ip || !hwid || !content.wkey) return res.send({ w: false, m: "Invalid key." });
     let wkey = content.wkey;
 
     console.log(wkey)
