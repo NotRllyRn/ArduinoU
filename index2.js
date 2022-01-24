@@ -2,9 +2,7 @@ require('dotenv').config()
 const crypto = require("crypto");
 const mysql = require('mysql')
 const express = require('express')
-const { Client } = require('discord.js');
-const { connect } = require('http2');
-const e = require('express');
+const Client = require('discord.js')
 const client = new Client({
     intents: ['GUILDS', 'DIRECT_MESSAGES', 'GUILD_MESSAGES'],
     partials: ['MESSAGE', 'CHANNEL']
@@ -16,15 +14,10 @@ function getIp(req) {
     let ip = (req.headers['x-forwarded-for'] || '').split(',').pop().trim();
     return ip
 }
-
 function fromTebex(req) {
     if (!({ '18.209.80.3': true, '54.87.231.232': true }[getIp(req)])) {
         return true
     } else return false;
-}
-
-function sendChannel(id, msg) {
-    client.channels.fetch(id).send(msg)
 }
 
 let sql = mysql.createConnection({
@@ -42,12 +35,58 @@ sql.connect(function (err) {
 const server = express()
 server.use(express.static(__dirname + "/site"));
 server.use(express.json());
-server.get('/hwid', function (req, res) {
-    res.send('i have your hwid :blush:')
-    let ip = getIp(req)
-    console.log(req.headers['syn-fingerprint'])
-    console.log(req.headers['x-forwarded-for'])
-    console.log(ip)
+server.post('/execute', function (req, res) {
+    let content = req.body;
+    let ip = getIp(req);
+    let hwid = req.headers['syn-fingerprint'];
+
+    if (!content || !ip || !hwid || !content.wkey) return;
+    let wkey = content.wkey;
+
+    sql.query('SELECT * FROM tbxkeys WHERE wkey = ?', [wkey], function (err, data) {
+        if (err) return;
+        if (data.length !== 0) return res.send({ w: false, m: "Invalid key." });
+
+        if (data[0].ip === ip) {
+            if (!data[0].hwid) {
+                sql.query('UPDATE tbxkeys SET ? WHERE wkey = ?', [
+                    {
+                        hwid: hwid
+                    },
+                    wkey
+                ], function (err) {
+                    if (err) return;
+                })
+                res.send({
+                    w: true,
+                    m: ''
+                })
+                client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``.')
+            } else if (data[0].hwid === hwid) {
+                res.send({
+                    w: true,
+                    m: ''
+                })
+                client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``.')
+            } else {
+                res.send({
+                    w: false,
+                    m: 'Detected hwid change.'
+                })
+                client.channels.cache.get('933071691184230400').send('Detected Change; ``' + data[0].userid + '``\n' +
+                    data[0].ip + ' < ' + ip + '``\n' + data[0].hwid + ' < ' + hwid + '``'
+                );
+            }
+        } else {
+            res.send({
+                w: false,
+                m: "Detected IP change."
+            });
+            client.channels.cache.get('933071691184230400').send('Detected Change; ``' + data[0].userid + '``\n' +
+                data[0].ip + ' < ' + ip + '``\n' + data[0].hwid + ' < ' + hwid + '``'
+            );
+        }
+    })
 });
 server.post('/transaction', function (req, res) {
     let content = req.body;
@@ -61,35 +100,33 @@ server.post('/transaction', function (req, res) {
         let userid = content.subject.customer.username.id;
         let wkey = crypto.randomBytes(24).toString("hex");
 
-        sql.query(`SELECT * FROM tbxkeys WHERE tbxid = ${tbxid}`, function (err, data) {
-            if (err) return;
-            if (data.length !== 0) return;
-
-            function checkkey() {
-                sql.query(`SELECT * FROM tbxkeys WHERE wkey = ${wkey}`, function (err, data) {
-                    if (err) return;
-                    if (data.length !== 0) {
+        let checkkey;
+        function checkkey() {
+            sql.query(`SELECT * FROM tbxkeys WHERE wkey = ? OR tbxid = ?`, [wkey, tbxid], function (err, data) {
+                if (err) return;
+                if (data.length !== 0) {
+                    if (data[0].wkey === wkey) {
                         wkey = crypto.randomBytes(24).toString("hex");
-                        checkkey();
-                    } else {
-                        sql.query('INSERT INTO tbxkeys SET ?', {
-                            tbxid: tbxid,
-                            wkey: wkey,
-                            ip: ip,
-                            whitelist: true,
-                            userid: userid
-                        }, function (err) {
-                            if (err) return; else client.channels.cache.get('933071643637612554').send(
-                                '``' + content.subject.customer.username.username + '`` Whitelisted.\n'
-                                + 'Ip: ``' + ip + '``\n'
-                                + 'TbxID: ``' + tbxid + '``\n'
-                                + 'UserID: ``' + userid + '``'
-                            );
-                        });
+                        checkkey()
                     }
-                });
-            }
-        });
+                } else {
+                    sql.query('INSERT INTO tbxkeys SET ?', {
+                        tbxid: tbxid,
+                        wkey: wkey,
+                        ip: ip,
+                        whitelist: true,
+                        userid: userid
+                    }, function (err) {
+                        if (err) return; else client.channels.cache.get('933071643637612554').send(
+                            '``' + content.subject.customer.username.username + '`` Whitelisted.\n'
+                            + 'Ip: ``' + ip + '``\n'
+                            + 'TbxID: ``' + tbxid + '``\n'
+                            + 'UserID: ``' + userid + '``'
+                        );
+                    });
+                }
+            });
+        }
     }
 });
 server.get('/login', function (req, res) {
