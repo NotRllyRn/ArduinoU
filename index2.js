@@ -4,15 +4,25 @@ const mysql = require('mysql')
 const express = require('express')
 const { Client } = require('discord.js');
 const { connect } = require('http2');
+const e = require('express');
 const client = new Client({
     intents: ['GUILDS', 'DIRECT_MESSAGES', 'GUILD_MESSAGES'],
     partials: ['MESSAGE', 'CHANNEL']
 })
 
+let dServer;
+
 function getIp(req) {
     let ip = (req.headers['x-forwarded-for'] || '').split(',').pop().trim();
     return ip
 }
+
+function fromTebex(req) {
+    if (!({ '18.209.80.3': true, '54.87.231.232': true }[getIp(req)])) {
+        return true
+    } else return false;
+}
+
 function sendChannel(id, msg) {
     client.channels.fetch(id).send(msg)
 }
@@ -40,9 +50,9 @@ server.get('/hwid', function (req, res) {
     console.log(ip)
 });
 server.post('/transaction', function (req, res) {
-    let content = req.body
+    let content = req.body;
 
-    if (!({ '18.209.80.3': true, '54.87.231.232': true }[getIp(req)])) return;
+    if (fromTebex(req)) return;
     if (content.type === 'validation.webhook') return res.send({ id: content.id });
 
     if ((content.type === 'payment.completed') && (content.subject.status.description === 'Complete')) {
@@ -83,10 +93,10 @@ server.post('/transaction', function (req, res) {
     }
 });
 server.get('/login', function (req, res) {
-    if (!({ '18.209.80.3': true, '54.87.231.232': true }[getIp(req)])) return;
+    if (fromTebex(req)) return;
     let uuid = ((req.url || '').toString().split('=').pop().trim()) || ''
 
-    client.guilds.cache.get('933052164992020481').members.fetch(uuid).then(() => {
+    dServer.members.fetch(uuid).then(() => {
         res.send({
             "verified": true
         });
@@ -101,5 +111,6 @@ server.listen(process.env.PORT);
 
 client.on("ready", () => {
     client.user.setActivity(`for sure`, { type: "LISTENING" });
+    dServer = client.guilds.cache.get('933052164992020481');
 });
 client.login(process.env.DISCORD_TOKEN)
