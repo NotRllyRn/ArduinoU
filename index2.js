@@ -36,7 +36,7 @@ const server = express()
 server.use(express.static(__dirname + "/site"));
 server.use(express.json());
 server.post('/execute', function (req, res) {
-    let content = req.body;
+    let content = req.Body;
     let ip = getIp(req);
     let hwid = req.headers['syn-fingerprint'];
     console.log(content)
