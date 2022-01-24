@@ -102,7 +102,6 @@ server.post('/transaction', function (req, res) {
         let userid = content.subject.customer.username.id;
         let wkey = crypto.randomBytes(24).toString("hex");
 
-        let checkkey;
         function checkkey() {
             sql.query(`SELECT * FROM tbxkeys WHERE wkey = ? OR tbxid = ?`, [wkey, tbxid], function (err, data) {
                 if (err) return;
