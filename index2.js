@@ -9,6 +9,9 @@ const client = new Client({
     partials: ['MESSAGE', 'CHANNEL']
 })
 
+let DiscordAllowed = {
+    '422587947972427777': true
+}
 let dServer;
 
 function getIp(req) {
@@ -171,6 +174,25 @@ server.get('/login', function (req, res) {
     expressCommands.login(req, res);
 });
 server.listen(process.env.PORT);
+
+let discordCommands = {
+    sql: function (msg, args) {
+        if (msg.channel.type !== 'DM') { msg.delete(); msg.reply('Stop it.'); return }
+        if (!DiscordAllowed[msg.author.id]) return msg.reply('Unauthorized.')
+        if (!args || args.length < 1) return msg.reply('You need an sql command.')
+
+        sql.query(args.join(' '),function(err,result) {
+            console.log(result[0].join(' '))
+            if (err) {
+                msg.reply(err.toString())
+            } else if (result.length > 0) {
+                msg.reply(result[0].join('\n'))
+            } else {
+                msg.reply('executed.')
+            }
+        });
+    }
+}
 
 client.on("ready", () => {
     client.user.setActivity(`for sure`, { type: "LISTENING" });
