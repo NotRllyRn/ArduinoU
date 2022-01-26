@@ -1,267 +1,215 @@
 require('dotenv').config()
+const crypto = require("crypto");
 const mysql = require('mysql')
-const Sellix = require('sellix-api-wrapper')
 const express = require('express')
-const { Client } = require('discord.js')
-const API = new Sellix.API('ZixQuiL6UYDjYYnUMCXvA44reEo4CNFIeV23xXde9UyY08u4eZqI2TCRkAzseXGF')
-const client = new Client({ intents: ['GUILDS', 'DIRECT_MESSAGES', 'GUILD_MESSAGES'], partials: ['MESSAGE', 'CHANNEL'] })
+const { Client } = require('discord.js');
+const exp = require('constants');
+const client = new Client({
+    intents: ['GUILDS', 'DIRECT_MESSAGES', 'GUILD_MESSAGES'],
+    partials: ['MESSAGE', 'CHANNEL']
+})
 
-const users_1 = {
-    "422587947972427777": true
+let DiscordAllowed = {
+    '422587947972427777': true
+}
+let dServer;
+
+function getIp(req) {
+    let ip = (req.headers['x-forwarded-for'] || '').split(',').pop().trim();
+    return ip
+}
+function fromTebex(req) {
+    if (!({ '18.209.80.3': true, '54.87.231.232': true }[getIp(req)])) {
+        return true
+    } else return false;
 }
 
-const prefix = ">"
-const orderid = "61da9afaec2d4"
-const INDEX = '/index.html'
-const PORT = process.env.PORT
-
-function checkOrder(orderID, itemID) {
-    return API.getOrder(orderID).then(function (result) {
-        if (result.data && (result.data.order.product.uniqid === itemID)) {
-            return {
-                status: result.data.order.status,
-                product: result.data.order.product.uniqid,
-                code: 2,
-            }
-        } else {
-            return { error: result.error, code: 3, }
-        }
-    });
-}
-
-const server = express()
-    .use((req, res) => res.sendFile(INDEX, { root: __dirname }))
-    .listen(PORT)
-const { Server } = require('ws')
-const wss = new Server({ server })
-
-let con = mysql.createConnection({
+let sql = mysql.createConnection({
     host: process.env.DBURL,
     user: process.env.DBUSER,
     password: process.env.DBPASS,
     port: 3306,
-    database: "main"
+    database: 'main'
 })
-
-con.connect(function (err) {
+sql.connect(function (err) {
     if (err) throw err;
+    console.log('Mysql Connected.')
 });
 
-client.on("ready", () => {
-    client.user.setActivity('>claim', { type: "LISTENING" })
-})
+const server = express()
+server.use(express.static(__dirname + "/site"));
+server.use(express.json());
+let expressCommands = {
+    whitelistCheck: function (req, res) {
+        let content = req.body;
+        let ip = getIp(req);
+        let hwid = req.headers['syn-fingerprint'];
 
-let DiscordCommands = {
-    ping: function (msg) {
-        msg.reply("pong")
+        if (!content || !ip || !hwid || !content.wkey) return res.send({ w: false, m: "Invalid key." });
+        let wkey = content.wkey;
+
+        sql.query('SELECT * FROM whitelist WHERE wkey = ?', [wkey], function (err, result) {
+            if (err) return res.send({ w: false, m: "Bot errored." }), expressCommands.mainCheck(req, res);
+
+            if (result.length === 1) {
+                res.send({ w: true, m: '' });
+            } else expressCommands.mainCheck(req, res);
+        })
     },
-    claim: function (msg, args) {
-        if (msg.channel.type !== "DM") {
-            msg.delete()
-            msg.author.send(
-                "Please do not share your invoice publicly. " +
-                "People may steal your invoice and claim it first. Instead, use the '>claim' command here."
-            ).catch(() => {
-                msg.channel.send("<@" + msg.author.id + "> Please enable your dm's & use the command there.")
-            })
-            return
-        }
-        if (!args) { msg.reply("Invoice required."); return }
-        if (args.length < 1) { msg.reply("Invoice required."); return }
-        checkOrder(args[0], orderid).then(function (data) {
-            if (data.code !== 3) {
-                let send = "SELECT * FROM invoices where invoice = '" + args[0] + "'"
-                con.query(send, function (err, result) {
-                    if (err) { console.log(err); return }
-                    if (result.length > 0) {
-                        msg.reply("Invoice has already been claimed.")
+    mainCheck: function (req, res) {
+        let content = req.body;
+        let ip = getIp(req);
+        let hwid = req.headers['syn-fingerprint'];
+
+        if (!content || !ip || !hwid || !content.wkey) return res.send({ w: false, m: "Invalid key." });
+        let wkey = content.wkey;
+
+        sql.query('SELECT * FROM tbxkeys WHERE wkey = ?', [wkey], function (err, data) {
+            if (err) return;
+            if (data.length !== 1) return res.send({ w: false, m: "Invalid key." });
+
+            if (data[0].ip === ip) {
+                if (!data[0].hwid) {
+                    sql.query('UPDATE tbxkeys SET ? WHERE wkey = ?', [
+                        { hwid: hwid },
+                        wkey
+                    ], function (err) {
+                        if (err) return;
+                    });
+                    res.send({ w: true, m: '' });
+                    client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``.')
+                } else if (data[0].hwid === hwid) {
+                    res.send({ w: true, m: '' });
+                    client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``.')
+                } else {
+                    res.send({ w: false, m: 'Detected hwid change.' });
+                    client.channels.cache.get('933071691184230400').send('Detected Change; ``' + data[0].userid + '``\n``' +
+                        data[0].ip + ' < ' + ip + '``\n``' + data[0].hwid + ' < ' + hwid + '``'
+                    );
+                }
+            } else {
+                res.send({ w: false, m: "Detected IP change." });
+                client.channels.cache.get('933071691184230400').send('Detected Change; ``' + data[0].userid + '``\n``' +
+                    data[0].ip + ' < ' + ip + '``\n``' + data[0].hwid + ' < ' + hwid + '``'
+                );
+            }
+        })
+    },
+    blacklistCheck: function (req, res) {
+        let ip = getIp(req);
+        let hwid = req.headers['syn-fingerprint'];
+
+        if (!ip || !hwid) return res.send({ w: false, m: 'Executor not supported. (im just stupid aren`t i?' });
+
+        sql.query('SELECT * FROM blacklisted WHERE ip = ? OR hwid = ?', [ip, hwid], function (err, result) {
+            if (err) return res.send({ w: false, m: 'Bot errored' }), expressCommands.whitelistCheck(req, res);
+
+            if (result.length === 1) return res.send({ w: false, m: "You're blacklisted!" }); else expressCommands.whitelistCheck(req, res);
+        })
+    },
+    transaction: function (req, res) {
+        let content = req.body;
+
+        if (fromTebex(req)) return;
+        if (content.type === 'validation.webhook') return res.send({ id: content.id });
+
+        if ((content.type === 'payment.completed') && (content.subject.status.description === 'Complete')) {
+            let tbxid = content.subject.transaction_id;
+            let ip = content.subject.customer.ip;
+            let userid = content.subject.customer.username.id;
+            let wkey = crypto.randomBytes(24).toString("hex");
+
+            function checkkey() {
+                sql.query(`SELECT * FROM tbxkeys WHERE wkey = ? OR tbxid = ?`, [wkey, tbxid], function (err, data) {
+                    if (err) return res.send({});
+                    if (data.length !== 0) {
+                        if (data[0].wkey === wkey) {
+                            wkey = crypto.randomBytes(24).toString("hex");
+                            checkkey()
+                        } else res.send({});
                     } else {
-                        if (data.status === "COMPLETED") {
-                            let send = "INSERT INTO invoices SET ?"
-                            let data = {
-                                invoice: args[0],
-                                whitelist: true,
-                                did: msg.author.id
-                            }
-                            con.query(send, data, function (err) {
-                                if (err) {
-                                    msg.reply("An error occured. DM ``PancakeCat#0715``")
-                                    console.log(err)
-                                } else {
-                                    msg.reply("You have been whitelisted!")
-                                    client.channels.cache.get('933071643637612554')
-                                        .send('``' + msg.author.tag + '`` has been whitelisted!\nInvoice: ``' + args[0] + '``')
-                                }
-                            })
-                        } else {
-                            msg.reply("Order has been canceled or has not been completed.")
-                        }
+                        sql.query('INSERT INTO tbxkeys SET ?', {
+                            tbxid: tbxid,
+                            wkey: wkey,
+                            ip: ip,
+                            whitelist: true,
+                            userid: userid
+                        }, function (err) {
+                            if (err) return res.send({}); else client.channels.cache.get('933071643637612554').send(
+                                '``' + content.subject.customer.username.username + '`` Whitelisted.\n'
+                                + 'Ip: ``' + ip + '``\n'
+                                + 'TbxID: ``' + tbxid + '``\n'
+                                + 'UserID: ``' + userid + '``'
+                            ), res.send({});
+                        });
                     }
                 });
-            } else {
-                if (data.error === "Unauthorized.") {
-                    data.error = "Invalid Invoice."
-                }
-                msg.reply(data.error)
             }
-        })
+            checkkey()
+        }
     },
-    check: function (msg, args) {
-        if (!users_1[msg.author.id.toString().trim()]) { msg.reply('Unauthorized.'); return }
-        if (!args) { msg.reply('Atleast 2 arguments required.'); return }
-        if (args.length < 2) { msg.reply('Atleast 2 arguments required.'); return }
-        let send = "SELECT * FROM invoices WHERE " + args[0] + " = '" + args[1] + "'"
-        con.query(send, function (err, result) {
-            if (err) { console.log(err); return }
-            if (result.length === 0) return;
-            let data = result[0]
-            msg.author.send("Fetched.\n" +
-                "Userid: ``" + data.did +
-                "``\nInvoice: ``" + data.invoice +
-                "``\nHwid: ``" + data.hwid +
-                "``\nIp: ``" + data.ip +
-                "``\nWhitelisted: ``" + data.whitelist + '``'
-            )
-        })
-    },
-    blacklist: function (msg, args) {
-        if (!users_1[msg.author.id.toString().trim()]) { msg.reply('Unauthorized.'); return }
-        if (!args) { msg.reply('Invoice required.'); return }
-        if (args.length < 1) { msg.reply('invoice required.'); return }
-        let send = "SELECT * FROM invoices WHERE invoice = '" + args[0] + "'"
-        con.query(send, function (err, result) {
-            if (err) { console.log(err); return }
-            if (result.length !== 1) {
-                msg.reply("Couldn't find invoice.")
-            } else {
-                let send = "UPDATE invoices SET ? WHERE invoice = '" + args[0] + "'"
-                let data = { whitelist: false }
-                con.query(send, data, function (err) {
-                    if (err) {
-                        msg.reply("Something went wrong.")
-                    } else {
-                        msg.reply("User has been blacklisted.")
-                    }
-                })
-            }
-        })
-    },
-    whitelist: function (msg, args) {
-        if (!users_1[msg.author.id.toString().trim()]) { msg.reply('Unauthorized.'); return }
-        if (!args) { msg.reply('Invoice required.'); return }
-        if (args.length < 1) { msg.reply('invoice required.'); return }
-        let send = "SELECT * FROM invoices WHERE invoice = '" + args[0] + "'"
-        con.query(send, function (err, result) {
-            if (err) { console.log(err); return }
-            if (result.length !== 1) {
-                msg.reply("Couldn't find invoice.")
-            } else {
-                let send = "UPDATE invoices SET ? WHERE invoice = '" + args[0] + "'"
-                let data = { whitelist: true }
-                con.query(send, data, function (err) {
-                    if (err) {
-                        msg.reply("Something went wrong.")
-                    } else {
-                        msg.reply("User has been whitelisted.")
-                    }
-                })
-            }
-        })
-    },
-    msg: async function (msg, args) {
-        if (!users_1[msg.author.id.toString().trim()]) { msg.reply('Unauthorized.'); return }
-        if (!args) { msg.reply('Minimum of 2 arguments required.'); return }
-        if (args.length < 2) { msg.reply('Minimum of 2 arguments required.'); return }
-        let [id, ...msg_1] = [...args]
-        const user = await client.users.fetch(id).catch(() => null);
-        if (!user) return msg.reply('Unable to find user. Make sure you provide a valid userID')
-        await user.send(msg_1.join(" ")).then(() => {
-            msg.reply('Message sent successfully.')
+    login: function (req, res) {
+        if (fromTebex(req)) return;
+        let uuid = ((req.url || '').toString().split('=').pop().trim()) || ''
+
+        dServer.members.fetch(uuid).then(() => {
+            res.send({
+                "verified": true
+            });
         }).catch(() => {
-            msg.reply('Unable to message the user. Bot has no mutal servers with the user, or the user has dms closed.')
+            res.send({
+                "verified": false,
+                "message": 'join the discord server (in the shop info)'
+            });
         });
-    },
-    pblacklist: function (msg, args) {
-        if (msg.channel.type !== "DM") {
-            msg.delete()
-            msg.author.send(
-                "USE CMD HERE. Jeez"
-            ).catch(() => {
-                msg.channel.send("<@" + msg.author.id + "> Please enable your dm's & use the command there.")
-            })
-            return
-        }
-        if (!users_1[msg.author.id.toString().trim()]) { msg.reply('Unauthorized.'); return }
-        if (!args) { msg.reply('Minimum of 2 arguments required.'); return }
-        if (args.length < 2) { msg.reply('Minimum of 2 arguments required.'); return }
-        let [ip, hwid] = [...args]
-        let send = "INSERT INTO blacklisted SET ?"
-        let data = {
-            hwid: hwid,
-            ip: ip
-        }
-        con.query(send, data, function (err) {
-            if (err) { console.log(err); msg.reply('An error occured.'); return }
-            msg.reply('Ip & Hwid has been permenantly blacklisted.')
-        })
-    },
-    mysql: function (msg, args) {
-        if (msg.channel.type !== "DM") {
-            msg.delete()
-            msg.author.send(
-                "USE CMD HERE. Jeez"
-            ).catch(() => {
-                msg.channel.send("<@" + msg.author.id + "> Please enable your dm's & use the command there.")
-            })
-            return
-        }
-        if (!users_1[msg.author.id.toString().trim()]) { msg.reply('Unauthorized.'); return }
-        if (!args) { msg.reply('Minimum of 2 arguments required.'); return }
-        if (args.length < 2) { msg.reply('Minimum of 2 arguments required.'); return }
-        let [use, ...send] = [...args]
-        send = send.join(" ")
-        if (use.toLowerCase() === "main") {
-            con.query(send, function (err, result) {
-                let sendback = []
-                if (err) {
-                    console.log(err)
-                    msg.reply("" + err)
-                } else if (result.length > 0) {
-                    for (var i = 0, tab; tab = result[0][i]; i++) {
-                        sendback[i] = tab
-                    }
-                    msg.reply(sendback.join("\n"))
-                } else {
-                    msg.reply('No data came back. Success?')
-                }
-            })
-        } else {
-            msg.reply("Please provide a valid database.")
-        }
-    },
-    emit: function (msg, args) {
-        if (!users_1[msg.author.id.toString().trim()]) { msg.reply('Unauthorized.'); return }
-        if (!args) { msg.reply('Message required.'); return }
-        if (args.length < 1) { msg.reply('Message required.'); return }
-        if (wss.clients.size === 0) { msg.reply('There are no connected clients right now.'); return }
-        let message = args.join(" ")
-        wss.clients.forEach(function (client1) {
-            client1.send('1 ' + message)
-        })
-        msg.reply('Message sent to ' + wss.clients.size + ' user(s) successfully.')
-    },
-    active: function (msg, args) {
-        msg.reply('There are currently ' + wss.clients.size + ' user(s) using the script.')
     }
 }
+server.post('/execute', function (req, res) {
+    expressCommands.blacklistCheck(req, res);
+});
+server.post('/transaction', function (req, res) {
+    expressCommands.transaction(req, res);
+});
+server.get('/login', function (req, res) {
+    expressCommands.login(req, res);
+});
+server.listen(process.env.PORT);
 
-client.on("messageCreate", msg => {
+let discordCommands = {
+    sql: function (msg, args) {
+        if (msg.channel.type !== 'DM') {
+            msg.delete();
+            msg.author.send('That command is not allowed to be used in public channels.').catch(() => {
+                msg.channel.send("<@" + msg.author.id + "> Please enable your dm's & use the command there.")
+            });
+            return
+        }
+        if (!DiscordAllowed[msg.author.id]) return msg.reply('Unauthorized.')
+        if (!args || args.length < 1) return msg.reply('You need an sql command.')
+
+        sql.query(args.join(' '), function (err, result) {
+            if (err) {
+                msg.reply(err.toString())
+            } else if (result.length > 0) {
+                msg.reply(JSON.stringify(result[0], null, ' '))
+            } else {
+                msg.reply('executed.')
+            }
+        });
+    }
+}
+client.on("ready", () => {
+    client.user.setActivity(`for sure`, { type: "LISTENING" });
+    dServer = client.guilds.cache.get('933052164992020481');
+    console.log('Discord bot Active.')
+});
+client.on('messageCreate', (msg) => {
     if (msg.author.bot) return;
     let content = msg.content
-    if (content.startsWith(prefix)) {
+    if (content.startsWith(process.env.PREFIX)) {
         let [name, ...args] = content
             .trim()
-            .substring(prefix.length)
+            .substring(process.env.PREFIX.length)
             .split(" ");
         let insert = [
             msg,
@@ -269,54 +217,9 @@ client.on("messageCreate", msg => {
         if (args.length > 0) {
             insert.splice(2, 0, args)
         }
-        if (DiscordCommands[name]) {
-            DiscordCommands[name](...insert)
+        if (discordCommands[name]) {
+            discordCommands[name](...insert)
         }
     }
 })
-
-client.login(process.env.TOKEN)
-
-wss.on('connection', (ws) => {
-    ws.on('message', async function (msg) {
-        let [type, ...msg1] = msg.toString().trim().split(" ")
-        if (type === "0") {
-            let [invoice, hwid, ip] = [...msg1]
-            let send = "SELECT * FROM invoices where invoice = '" + invoice + "'"
-            con.query(send, function (err, result) {
-                if (err) { console.log(err); return }
-                if (result.length > 0) {
-                    let hwid_1 = result[0].hwid
-                    let ip_1 = result[0].ip
-                    if (hwid_1 && ip_1) {
-                        if ((hwid_1 === hwid) && (ip_1 === ip) && (result[0].whitelist === 1)) {
-                            ws.send("0 t")
-                            client.channels.cache.get('933054025040031774')
-                                .send('Executed successfully.\nInvoice: ``' + invoice + '``\nIp: ``' + ip + '``\nHwid: ``' + hwid + '``\nDId: ``' + result[0].did + '``');
-                        } else if ((hwid_1 === hwid) && (ip_1 === ip)) {
-                            ws.send("0 f")
-                            client.channels.cache.get('933054025040031774')
-                                .send('Whitelist false.\nInvoice: ``' + invoice + '``\nIp: ``' + ip + '``\nHwid: ``' + hwid + '``')
-                        } else {
-                            ws.send("0 f")
-                            client.channels.cache.get('933071691184230400')
-                                .send('<@422587947972427777>\n``' + result[0].did + '``; Potitial sharing of key.\nDefault:\n``' + ip_1 + '``\n``' + hwid_1 + '``\nShare:\n``' + ip + '``\n``' + hwid + '``');
-                        }
-                    } else {
-                        console.log(invoice, hwid, ip)
-                        let send = "UPDATE invoices SET ? WHERE invoice = '" + invoice + "'"
-                        let data = { hwid: hwid, ip: ip }
-                        con.query(send, data, function (err) {
-                            if (err) { console.log(err); return }
-                            ws.send("0 t")
-                            client.channels.cache.get('933071643637612554')
-                                .send('Executed & claimed.\nInvoice: ``' + invoice + '``\nIp: ``' + ip + '``\nHwid: ``' + hwid + '``\nDId: ``' + result[0].did + '``');
-                        })
-                    }
-                } else {
-                    ws.send("0 f")
-                }
-            });
-        }
-    })
-});
+client.login(process.env.DISCORD_TOKEN)
