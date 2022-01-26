@@ -35,58 +35,77 @@ sql.connect(function (err) {
 const server = express()
 server.use(express.static(__dirname + "/site"));
 server.use(express.json());
-server.post('/execute', function (req, res) {
-    let content = req.body;
-    let ip = getIp(req);
-    let hwid = req.headers['syn-fingerprint'];
+let expressCommands = {
+    whitelistCheck: function (req, res) {
+        let content = req.body;
+        let ip = getIp(req);
+        let hwid = req.headers['syn-fingerprint'];
 
-    if (!content || !ip || !hwid || !content.wkey) return res.send({ w: false, m: "Invalid key." });
-    let wkey = content.wkey;
+        if (!content || !ip || !hwid || !content.wkey) return res.send({ w: false, m: "Invalid key." });
+        let wkey = content.wkey;
 
-    sql.query('SELECT * FROM tbxkeys WHERE wkey = ?', [wkey], function (err, data) {
-        if (err) return;
-        if (data.length !== 1) return res.send({ w: false, m: "Invalid key." });
+        sql.query('SELECT * FROM whitelist WHERE wkey = ?', [wkey], function (err, result) {
+            if (err) return res.send({ w: false, m: "Bot errored." }), expressCommands.mainCheck(req, res);
 
-        if (data[0].ip === ip) {
-            if (!data[0].hwid) {
-                sql.query('UPDATE tbxkeys SET ? WHERE wkey = ?', [
-                    {
-                        hwid: hwid
-                    },
-                    wkey
-                ], function (err) {
-                    if (err) return;
-                })
-                res.send({
-                    w: true,
-                    m: ''
-                })
-                client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``.')
-            } else if (data[0].hwid === hwid) {
-                res.send({
-                    w: true,
-                    m: ''
-                })
-                client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``.')
+            if (result.length === 1) {
+                res.send({ w: true, m: '' });
+            } else expressCommands.mainCheck(req, res);
+        })
+    },
+    mainCheck: function (req, res) {
+        let content = req.body;
+        let ip = getIp(req);
+        let hwid = req.headers['syn-fingerprint'];
+
+        if (!content || !ip || !hwid || !content.wkey) return res.send({ w: false, m: "Invalid key." });
+        let wkey = content.wkey;
+
+        sql.query('SELECT * FROM tbxkeys WHERE wkey = ?', [wkey], function (err, data) {
+            if (err) return;
+            if (data.length !== 1) return res.send({ w: false, m: "Invalid key." });
+
+            if (data[0].ip === ip) {
+                if (!data[0].hwid) {
+                    sql.query('UPDATE tbxkeys SET ? WHERE wkey = ?', [
+                        { hwid: hwid },
+                        wkey
+                    ], function (err) {
+                        if (err) return;
+                    });
+                    res.send({ w: true, m: '' });
+                    client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``.')
+                } else if (data[0].hwid === hwid) {
+                    res.send({ w: true, m: '' });
+                    client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``.')
+                } else {
+                    res.send({ w: false, m: 'Detected hwid change.' });
+                    client.channels.cache.get('933071691184230400').send('Detected Change; ``' + data[0].userid + '``\n``' +
+                        data[0].ip + ' < ' + ip + '``\n``' + data[0].hwid + ' < ' + hwid + '``'
+                    );
+                }
             } else {
-                res.send({
-                    w: false,
-                    m: 'Detected hwid change.'
-                })
+                res.send({ w: false, m: "Detected IP change." });
                 client.channels.cache.get('933071691184230400').send('Detected Change; ``' + data[0].userid + '``\n``' +
                     data[0].ip + ' < ' + ip + '``\n``' + data[0].hwid + ' < ' + hwid + '``'
                 );
             }
-        } else {
-            res.send({
-                w: false,
-                m: "Detected IP change."
-            });
-            client.channels.cache.get('933071691184230400').send('Detected Change; ``' + data[0].userid + '``\n``' +
-                data[0].ip + ' < ' + ip + '``\n``' + data[0].hwid + ' < ' + hwid + '``'
-            );
-        }
-    })
+        })
+    },
+    blacklistCheck: function (req, res) {
+        let ip = getIp(req);
+        let hwid = req.headers['syn-fingerprint'];
+
+        if (!ip || !hwid) return res.send({ w: false, m: 'Executor not supported. (im just stupid aren`t i?' });
+
+        sql.query('SELECT * FROM blacklisted WHERE ip = ? OR hwid = ?', [ip, hwid], function (err, result) {
+            if (err) return res.send({ w: false, m: 'Bot errored' }), expressCommands.whitelistCheck(req, res);
+
+            if (result.length === 1) return res.send({ w: false, m: "You're blacklisted!" }); else expressCommands.whitelistCheck(req, res);
+        })
+    }
+}
+server.post('/execute', function (req, res) {
+    expressCommands.blacklistCheck(req, res)
 });
 server.post('/transaction', function (req, res) {
     let content = req.body;
