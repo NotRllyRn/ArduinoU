@@ -39,16 +39,14 @@ server.post('/execute', function (req, res) {
     let content = req.body;
     let ip = getIp(req);
     let hwid = req.headers['syn-fingerprint'];
-    console.log(content, hwid)
+
     if (!content || !ip || !hwid || !content.wkey) return res.send({ w: false, m: "Invalid key." });
     let wkey = content.wkey;
 
-    console.log(wkey)
-
     sql.query('SELECT * FROM tbxkeys WHERE wkey = ?', [wkey], function (err, data) {
         if (err) return;
-        if (data.length !== 0) return res.send({ w: false, m: "Invalid key." });
-        console.log(data, data[0])
+        if (data.length !== 1) return res.send({ w: false, m: "Invalid key." });
+
         if (data[0].ip === ip) {
             if (!data[0].hwid) {
                 sql.query('UPDATE tbxkeys SET ? WHERE wkey = ?', [
