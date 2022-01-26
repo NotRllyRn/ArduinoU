@@ -188,7 +188,6 @@ let discordCommands = {
         if (!args || args.length < 1) return msg.reply('You need an sql command.')
 
         sql.query(args.join(' '), function (err, result) {
-            console.log(result[0].join(' '))
             if (err) {
                 msg.reply(err.toString())
             } else if (result.length > 0) {
