@@ -2,7 +2,8 @@ require('dotenv').config()
 const crypto = require("crypto");
 const mysql = require('mysql')
 const express = require('express')
-const { Client } = require('discord.js')
+const { Client } = require('discord.js');
+const exp = require('constants');
 const client = new Client({
     intents: ['GUILDS', 'DIRECT_MESSAGES', 'GUILD_MESSAGES'],
     partials: ['MESSAGE', 'CHANNEL']
@@ -102,67 +103,72 @@ let expressCommands = {
 
             if (result.length === 1) return res.send({ w: false, m: "You're blacklisted!" }); else expressCommands.whitelistCheck(req, res);
         })
+    },
+    transaction: function (req, res) {
+        let content = req.body;
+
+        if (fromTebex(req)) return;
+        if (content.type === 'validation.webhook') return res.send({ id: content.id });
+
+        if ((content.type === 'payment.completed') && (content.subject.status.description === 'Complete')) {
+            let tbxid = content.subject.transaction_id;
+            let ip = content.subject.customer.ip;
+            let userid = content.subject.customer.username.id;
+            let wkey = crypto.randomBytes(24).toString("hex");
+
+            function checkkey() {
+                sql.query(`SELECT * FROM tbxkeys WHERE wkey = ? OR tbxid = ?`, [wkey, tbxid], function (err, data) {
+                    if (err) return res.send({});
+                    if (data.length !== 0) {
+                        if (data[0].wkey === wkey) {
+                            wkey = crypto.randomBytes(24).toString("hex");
+                            checkkey()
+                        } else res.send({});
+                    } else {
+                        sql.query('INSERT INTO tbxkeys SET ?', {
+                            tbxid: tbxid,
+                            wkey: wkey,
+                            ip: ip,
+                            whitelist: true,
+                            userid: userid
+                        }, function (err) {
+                            if (err) return res.send({}); else client.channels.cache.get('933071643637612554').send(
+                                '``' + content.subject.customer.username.username + '`` Whitelisted.\n'
+                                + 'Ip: ``' + ip + '``\n'
+                                + 'TbxID: ``' + tbxid + '``\n'
+                                + 'UserID: ``' + userid + '``'
+                            ), res.send({});
+                        });
+                    }
+                });
+            }
+            checkkey()
+        }
+    },
+    login: function (req, res) {
+        if (fromTebex(req)) return;
+        let uuid = ((req.url || '').toString().split('=').pop().trim()) || ''
+
+        dServer.members.fetch(uuid).then(() => {
+            res.send({
+                "verified": true
+            });
+        }).catch(() => {
+            res.send({
+                "verified": false,
+                "message": 'join the discord server (in the shop info)'
+            });
+        });
     }
-    
 }
 server.post('/execute', function (req, res) {
-    expressCommands.blacklistCheck(req, res)
+    expressCommands.blacklistCheck(req, res);
 });
 server.post('/transaction', function (req, res) {
-    let content = req.body;
-
-    if (fromTebex(req)) return;
-    if (content.type === 'validation.webhook') return res.send({ id: content.id });
-
-    if ((content.type === 'payment.completed') && (content.subject.status.description === 'Complete')) {
-        let tbxid = content.subject.transaction_id;
-        let ip = content.subject.customer.ip;
-        let userid = content.subject.customer.username.id;
-        let wkey = crypto.randomBytes(24).toString("hex");
-
-        function checkkey() {
-            sql.query(`SELECT * FROM tbxkeys WHERE wkey = ? OR tbxid = ?`, [wkey, tbxid], function (err, data) {
-                if (err) return res.send({});
-                if (data.length !== 0) {
-                    if (data[0].wkey === wkey) {
-                        wkey = crypto.randomBytes(24).toString("hex");
-                        checkkey()
-                    } else res.send({});
-                } else {
-                    sql.query('INSERT INTO tbxkeys SET ?', {
-                        tbxid: tbxid,
-                        wkey: wkey,
-                        ip: ip,
-                        whitelist: true,
-                        userid: userid
-                    }, function (err) {
-                        if (err) return res.send({}); else client.channels.cache.get('933071643637612554').send(
-                            '``' + content.subject.customer.username.username + '`` Whitelisted.\n'
-                            + 'Ip: ``' + ip + '``\n'
-                            + 'TbxID: ``' + tbxid + '``\n'
-                            + 'UserID: ``' + userid + '``'
-                        ), res.send({});
-                    });
-                }
-            });
-        }
-        checkkey()
-    }
+    expressCommands.transaction(req, res);
 });
 server.get('/login', function (req, res) {
-    if (fromTebex(req)) return;
-    let uuid = ((req.url || '').toString().split('=').pop().trim()) || ''
-
-    dServer.members.fetch(uuid).then(() => {
-        res.send({
-            "verified": true
-        });
-    }).catch(() => {
-        res.send({
-            "verified": false,
-            "message": 'join the discord server (in the shop info)'
-        });
-    });
+    expressCommands.login(req, res);
 });
 server.listen(process.env.PORT);
 
