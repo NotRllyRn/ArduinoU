@@ -181,12 +181,12 @@ let discordCommands = {
         if (!DiscordAllowed[msg.author.id]) return msg.reply('Unauthorized.')
         if (!args || args.length < 1) return msg.reply('You need an sql command.')
 
-        sql.query(args.join(' '),function(err,result) {
+        sql.query(args.join(' '), function (err, result) {
             console.log(result[0].join(' '))
             if (err) {
                 msg.reply(err.toString())
             } else if (result.length > 0) {
-                msg.reply(JSON.stringify(result[0],null,' '))
+                msg.reply(JSON.stringify(result[0], null, ' '))
             } else {
                 msg.reply('executed.')
             }
@@ -198,4 +198,23 @@ client.on("ready", () => {
     client.user.setActivity(`for sure`, { type: "LISTENING" });
     dServer = client.guilds.cache.get('933052164992020481');
 });
+client.on('message', (msg) => {
+    if (msg.author.bot) return;
+    let content = msg.content
+    if (content.startsWith(process.env.PREFIX)) {
+        let [name, ...args] = content
+            .trim()
+            .substring(prefix.length)
+            .split(" ");
+        let insert = [
+            msg,
+        ]
+        if (args.length > 0) {
+            insert.splice(2, 0, args)
+        }
+        if (discordCommands[name]) {
+            discordCommands[name](...insert)
+        }
+    }
+})
 client.login(process.env.DISCORD_TOKEN)
