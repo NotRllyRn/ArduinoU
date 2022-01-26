@@ -33,7 +33,7 @@ let sql = mysql.createConnection({
 })
 sql.connect(function (err) {
     if (err) throw err;
-    console.log('connected')
+    console.log('Mysql Connected.')
 });
 
 const server = express()
@@ -197,6 +197,7 @@ let discordCommands = {
 client.on("ready", () => {
     client.user.setActivity(`for sure`, { type: "LISTENING" });
     dServer = client.guilds.cache.get('933052164992020481');
+    console.log('Discord bot Active.')
 });
 client.on('message', (msg) => {
     if (msg.author.bot) return;
@@ -204,7 +205,7 @@ client.on('message', (msg) => {
     if (content.startsWith(process.env.PREFIX)) {
         let [name, ...args] = content
             .trim()
-            .substring(prefix.length)
+            .substring(process.env.PREFIX.length)
             .split(" ");
         let insert = [
             msg,
