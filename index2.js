@@ -186,7 +186,7 @@ let discordCommands = {
             if (err) {
                 msg.reply(err.toString())
             } else if (result.length > 0) {
-                msg.reply(result[0].join('\n'))
+                msg.reply(JSON.stringify(result[0],null,' '))
             } else {
                 msg.reply('executed.')
             }
