@@ -103,6 +103,7 @@ let expressCommands = {
             if (result.length === 1) return res.send({ w: false, m: "You're blacklisted!" }); else expressCommands.whitelistCheck(req, res);
         })
     }
+    
 }
 server.post('/execute', function (req, res) {
     expressCommands.blacklistCheck(req, res)
