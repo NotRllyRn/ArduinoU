@@ -177,7 +177,13 @@ server.listen(process.env.PORT);
 
 let discordCommands = {
     sql: function (msg, args) {
-        if (msg.channel.type !== 'DM') { msg.delete(); msg.reply('Stop it.'); return }
+        if (msg.channel.type !== 'DM') {
+            msg.delete();
+            msg.author.send('That command is not allowed to be used in public channels.').catch(() => {
+                msg.channel.send("<@" + msg.author.id + "> Please enable your dm's & use the command there.")
+            });
+            return
+        }
         if (!DiscordAllowed[msg.author.id]) return msg.reply('Unauthorized.')
         if (!args || args.length < 1) return msg.reply('You need an sql command.')
 
@@ -199,7 +205,7 @@ client.on("ready", () => {
     dServer = client.guilds.cache.get('933052164992020481');
     console.log('Discord bot Active.')
 });
-client.on('message', (msg) => {
+client.on('messageCreate', (msg) => {
     if (msg.author.bot) return;
     let content = msg.content
     if (content.startsWith(process.env.PREFIX)) {
