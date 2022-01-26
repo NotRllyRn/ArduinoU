@@ -10,7 +10,7 @@
     "ws": "^8.4.0"
   },
   "scripts": {
-    "start": "node index2.js"
+    "start": "node index.js"
   },
   "engines": {
     "node": "16.13.1"
