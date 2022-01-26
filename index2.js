@@ -73,8 +73,8 @@ server.post('/execute', function (req, res) {
                     w: false,
                     m: 'Detected hwid change.'
                 })
-                client.channels.cache.get('933071691184230400').send('Detected Change; ``' + data[0].userid + '``\n' +
-                    data[0].ip + ' < ' + ip + '``\n' + data[0].hwid + ' < ' + hwid + '``'
+                client.channels.cache.get('933071691184230400').send('Detected Change; ``' + data[0].userid + '``\n``' +
+                    data[0].ip + ' < ' + ip + '``\n``' + data[0].hwid + ' < ' + hwid + '``'
                 );
             }
         } else {
@@ -82,8 +82,8 @@ server.post('/execute', function (req, res) {
                 w: false,
                 m: "Detected IP change."
             });
-            client.channels.cache.get('933071691184230400').send('Detected Change; ``' + data[0].userid + '``\n' +
-                data[0].ip + ' < ' + ip + '``\n' + data[0].hwid + ' < ' + hwid + '``'
+            client.channels.cache.get('933071691184230400').send('Detected Change; ``' + data[0].userid + '``\n``' +
+                data[0].ip + ' < ' + ip + '``\n``' + data[0].hwid + ' < ' + hwid + '``'
             );
         }
     })
