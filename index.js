@@ -250,7 +250,7 @@ let discordCommands = {
         sql.query('SELECT * FROM tbxkeys WHERE userid = ?', [msg.author.id.toString().trim()], function (err, data) {
             if (err) return msg.reply('Bot errored.');
             if (data.length > 0) {
-                msg.author.send('Key: ``' + wkey + '``').catch(() => {
+                msg.author.send('Key: ``' + data[0].wkey + '``').catch(() => {
                     client.channels.cache.get('936361136947859516').send('<@' + uuid + '> Enable your dms and use ``;getkey``.')
                 });
             }
