@@ -240,7 +240,7 @@ let discordCommands = {
             if (data.length === 0) {
                 msg.reply('You are not whitelisted.')
             } else if (data[0].whitelist.toString() === '1') {
-                msg.author.send(executeScript)
+                msg.author.send('``' + executeScript + '``')
             } else {
                 msg.reply('You are not whitelisted.')
             }
