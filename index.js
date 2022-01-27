@@ -3,7 +3,7 @@ const crypto = require("crypto");
 const mysql = require('mysql')
 const express = require('express')
 const { Client } = require('discord.js');
-const exp = require('constants');
+const fs = require('fs')
 const client = new Client({
     intents: ['GUILDS', 'DIRECT_MESSAGES', 'GUILD_MESSAGES'],
     partials: ['MESSAGE', 'CHANNEL']
@@ -13,6 +13,13 @@ let DiscordAllowed = {
     '422587947972427777': true
 }
 let dServer;
+let luaPath = './lua/'
+
+function executeScript(res, id) {
+    if (fs.existsSync(luaPath + id + '.lua')) {
+        res.send(fs.accessSync(luaPath + id + '.lua'))
+    }
+}
 
 function getIp(req) {
     let ip = (req.headers['x-forwarded-for'] || '').split(',').pop().trim();
@@ -45,11 +52,11 @@ let expressCommands = {
         let ip = getIp(req);
         let hwid = req.headers['syn-fingerprint'];
 
-        if (!content || !ip || !hwid || !content.wkey) return res.send({ w: false, m: "Invalid key." });
+        if (!content || !ip || !hwid || !content.wkey) return res.send('warn("Invalid key.")');
         let wkey = content.wkey;
 
         sql.query('SELECT * FROM whitelist WHERE wkey = ?', [wkey], function (err, result) {
-            if (err) return res.send({ w: false, m: "Bot errored." }), expressCommands.mainCheck(req, res);
+            if (err) return res.send('warn("Bot errored.")'), expressCommands.mainCheck(req, res);
 
             if (result.length === 1) {
                 res.send({ w: true, m: '' });
@@ -61,12 +68,13 @@ let expressCommands = {
         let ip = getIp(req);
         let hwid = req.headers['syn-fingerprint'];
 
-        if (!content || !ip || !hwid || !content.wkey) return res.send({ w: false, m: "Invalid key." });
+        if (!content || !ip || !hwid || !content.wkey || !content.gid) return res.send('warn("Invalid key.")');
         let wkey = content.wkey;
+        let gid = content.gid
 
         sql.query('SELECT * FROM tbxkeys WHERE wkey = ?', [wkey], function (err, data) {
             if (err) return;
-            if (data.length !== 1) return res.send({ w: false, m: "Invalid key." });
+            if (data.length !== 1) return res.send('warn("Invalid key.")');
 
             if (data[0].ip === ip) {
                 if (!data[0].hwid) {
@@ -82,13 +90,13 @@ let expressCommands = {
                     res.send({ w: true, m: '' });
                     client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``.')
                 } else {
-                    res.send({ w: false, m: 'Detected hwid change.' });
+                    res.send('warn("Detected hwid change")');
                     client.channels.cache.get('933071691184230400').send('Detected Change; ``' + data[0].userid + '``\n``' +
                         data[0].ip + ' < ' + ip + '``\n``' + data[0].hwid + ' < ' + hwid + '``'
                     );
                 }
             } else {
-                res.send({ w: false, m: "Detected IP change." });
+                res.send('warn("Detected ip change.")');
                 client.channels.cache.get('933071691184230400').send('Detected Change; ``' + data[0].userid + '``\n``' +
                     data[0].ip + ' < ' + ip + '``\n``' + data[0].hwid + ' < ' + hwid + '``'
                 );
@@ -98,13 +106,14 @@ let expressCommands = {
     blacklistCheck: function (req, res) {
         let ip = getIp(req);
         let hwid = req.headers['syn-fingerprint'];
+        let gid = req.body.gid
 
-        if (!ip || !hwid) return res.send({ w: false, m: 'Executor not supported. (im just stupid aren`t i?' });
+        if (!ip || !hwid || !gid) return res.send('warn("Executor not supported. (im just stupid aren`t i?)")');
 
         sql.query('SELECT * FROM blacklisted WHERE ip = ? OR hwid = ?', [ip, hwid], function (err, result) {
-            if (err) return res.send({ w: false, m: 'Bot errored' }), expressCommands.whitelistCheck(req, res);
+            if (err) return res.send('warn("Bot errored.")'), expressCommands.whitelistCheck(req, res);
 
-            if (result.length === 1) return res.send({ w: false, m: "You're blacklisted!" }); else expressCommands.whitelistCheck(req, res);
+            if (result.length === 1) return res.send(`warn("You're blacklisted.")`); else expressCommands.whitelistCheck(req, res);
         })
     },
     transaction: function (req, res) {
