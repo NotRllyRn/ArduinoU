@@ -13,7 +13,7 @@ let DiscordAllowed = {
     '422587947972427777': true
 }
 let dServer;
-let executeScript = `loadstring(game:HttpGet('https://arduinou.herokuapp.com/script', true))()`
+let executeScript = `loadstring(game:HttpGet('https://arduinou.herokuapp.com/loader', true))()`
 
 function getIp(req) {
     return (req.headers['x-forwarded-for'] || '').split(',').pop().trim();
@@ -134,12 +134,23 @@ let expressCommands = {
                             whitelist: true,
                             userid: userid
                         }, function (err) {
-                            if (err) return res.send({}); else client.channels.cache.get('933071643637612554').send(
-                                '``' + content.subject.customer.username.username + '`` Whitelisted.\n'
-                                + 'Ip: ``' + ip + '``\n'
-                                + 'TbxID: ``' + tbxid + '``\n'
-                                + 'UserID: ``' + userid + '``'
-                            ), res.send({});
+                            if (err) return res.send({}); else {
+                                let uuid = content.subject.customer.username.username.toString().trim()
+                                client.channels.cache.get('933071643637612554').send(
+                                    '``' + uuid + '`` Whitelisted.\n'
+                                    + 'Ip: ``' + ip + '``\n'
+                                    + 'TbxID: ``' + tbxid + '``\n'
+                                    + 'UserID: ``' + userid + '``'
+                                );
+                                dServer.members.fetch(uuid).then((member) => {
+                                    member.roles.add(dServer.roles.cache.find(r => r.id === '936359030849417278'))
+                                    member.send('Key: ``' + wkey + '``')
+                                }).catch(() => {
+                                    client.channels.cache.get('936361136947859516').send('<@' + uuid + '> Enable your dms and use ``;getkey``.')
+                                });
+
+                                res.send({});
+                            }
                         });
                     }
                 });
@@ -221,7 +232,7 @@ let discordCommands = {
             }
         });
     },
-    getscript(msg) {
+    getscript: function (msg) {
         let userid = msg.author.id.toString().trim()
 
         sql.query('SELECT * FROM tbxkeys WHERE userid = ?', [userid], function (err, data) {
@@ -229,14 +240,26 @@ let discordCommands = {
             if (data.length === 0) {
                 msg.reply('You are not whitelisted.')
             } else if (data[0].whitelist.toString() === '1') {
-                msg.author.send()
+                msg.author.send(executeScript)
+            } else {
+                msg.reply('You are not whitelisted.')
+            }
+        })
+    },
+    getkey: function (msg) {
+        sql.query('SELECT * FROM tbxkeys WHERE userid = ?', [msg.author.id.toString().trim()], function (err, data) {
+            if (err) return msg.reply('Bot errored.');
+            if (data.length > 0) {
+                msg.author.send('Key: ``' + wkey + '``').catch(() => {
+                    client.channels.cache.get('936361136947859516').send('<@' + uuid + '> Enable your dms and use ``;getkey``.')
+                });
             }
         })
     }
 }
 client.on("ready", () => {
     client.user.setActivity(`for sure`, { type: "LISTENING" });
-    dServer = client.guilds.cache.get('933052164992020481');
+    dServer = client.guilds.cache.get('936358880907255839');
     console.log('Discord bot Active.')
 });
 client.on('messageCreate', (msg) => {
