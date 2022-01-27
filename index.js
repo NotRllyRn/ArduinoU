@@ -13,11 +13,9 @@ let DiscordAllowed = {
     '422587947972427777': true
 }
 let dServer;
-let luaPath = './lua/'
 
 function getIp(req) {
-    let ip = (req.headers['x-forwarded-for'] || '').split(',').pop().trim();
-    return ip
+    return (req.headers['x-forwarded-for'] || '').split(',').pop().trim();
 }
 function fromTebex(req) {
     if (!({ '18.209.80.3': true, '54.87.231.232': true }[getIp(req)])) {
@@ -53,8 +51,8 @@ let expressCommands = {
             if (err) return res.send({ w: false, m: 'Bot errored.' }), expressCommands.mainCheck(req, res);
 
             if (result.length === 1) {
-                res.send({ w: true, m: '' })
-                client.channels.cache.get('933054025040031774').send('[' + wkey + '] Script executed.')
+                res.send({ w: true, m: '' });
+                client.channels.cache.get('933054025040031774').send('[' + wkey + '] Script executed.');
             } else expressCommands.mainCheck(req, res);
         })
     },
@@ -78,19 +76,19 @@ let expressCommands = {
                     ], function (err) {
                         if (err) return;
                     });
-                    res.send({ w: true, m: '' })
-                    client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``')
+                    res.send({ w: true, m: '' });
+                    client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``');
                 } else if (data[0].hwid === hwid) {
-                    res.send({ w: false, m: '' })
-                    client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``')
+                    res.send({ w: false, m: '' });
+                    client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``');
                 } else {
-                    res.send({ w: false, m: 'Detected HWID change.' })
+                    res.send({ w: false, m: 'Detected HWID change.' });
                     client.channels.cache.get('933071691184230400').send('Detected Change; ``' + data[0].userid + '``\n``' +
                         data[0].ip + ' < ' + ip + '``\n``' + data[0].hwid + ' < ' + hwid + '``'
                     );
                 }
             } else {
-                res.send({ w: false, m: 'Detected IP change.' })
+                res.send({ w: false, m: 'Detected IP change.' });
                 client.channels.cache.get('933071691184230400').send('Detected Change; ``' + data[0].userid + '``\n``' +
                     data[0].ip + ' < ' + ip + '``\n``' + data[0].hwid + ' < ' + hwid + '``'
                 );
@@ -127,7 +125,7 @@ let expressCommands = {
                     if (data.length !== 0) {
                         if (data[0].wkey === wkey) {
                             wkey = crypto.randomBytes(24).toString("hex");
-                            checkkey()
+                            checkkey();
                         } else res.send({});
                     } else {
                         sql.query('INSERT INTO tbxkeys SET ?', {
@@ -147,12 +145,12 @@ let expressCommands = {
                     }
                 });
             }
-            checkkey()
+            checkkey();
         }
     },
     login: function (req, res) {
         if (fromTebex(req)) return;
-        let uuid = ((req.url || '').toString().split('=').pop().trim()) || ''
+        let uuid = ((req.url || '').toString().split('=').pop().trim()) || '';
 
         dServer.members.fetch(uuid).then(() => {
             res.send({
@@ -166,7 +164,21 @@ let expressCommands = {
         });
     },
     getscript: function (req, res) {
-        res.send(fs.readFileSync('./lua/main.lua', 'utf8'))
+        let content = req.body;
+        let ip = getIp(req);
+        let hwid = req.headers['syn-fingerprint'];
+
+        if (!ip || !hwid || !content.wkey) return res.send({ w: false, m: 'Executor not supported OR no provided key.' });
+        let wkey = content.wkey;
+
+        sql.query('SELECT * FROM tbxkeys WHERE wkey = ? AND ip = ? AND hwid = ?', [wkey, ip, hwid], function (err, data) {
+            if (err) return res.send('warn("Bot errored")');
+            if (data.length > 0) {
+                res.send(fs.readFileSync('./lua/main.lua', 'utf8'));
+            } else {
+                res.send('warn("You either have a wrong key or you are not whitelisted on this IP or HWID.")');
+            }
+        });
     }
 }
 server.post('/execute', function (req, res) {
@@ -178,7 +190,7 @@ server.post('/transaction', function (req, res) {
 server.get('/login', function (req, res) {
     expressCommands.login(req, res);
 });
-server.get('/script', function (req, res) {
+server.post('/script', function (req, res) {
     expressCommands.getscript(req, res);
 });
 server.listen(process.env.PORT);
