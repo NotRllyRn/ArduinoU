@@ -13,6 +13,7 @@ let DiscordAllowed = {
     '422587947972427777': true
 }
 let dServer;
+let executeScript = `loadstring(game:HttpGet('https://arduinou.herokuapp.com/script', true))()`
 
 function getIp(req) {
     return (req.headers['x-forwarded-for'] || '').split(',').pop().trim();
@@ -40,12 +41,11 @@ server.use(express.static(__dirname + "/site"));
 server.use(express.json());
 let expressCommands = {
     whitelistCheck: function (req, res) {
-        let content = req.body;
+        let wkey = req.body;
         let ip = getIp(req);
         let hwid = req.headers['syn-fingerprint'];
 
-        if (!content || !ip || !hwid || !content.wkey) return res.send({ w: false, m: 'Invalid key.' });
-        let wkey = content.wkey;
+        if (!ip || !hwid || !wkey) return res.send({ w: false, m: 'No detected IP or HWID.' });
 
         sql.query('SELECT * FROM whitelist WHERE wkey = ?', [wkey], function (err, result) {
             if (err) return res.send({ w: false, m: 'Bot errored.' }), expressCommands.mainCheck(req, res);
@@ -57,12 +57,11 @@ let expressCommands = {
         })
     },
     mainCheck: function (req, res) {
-        let content = req.body;
+        let wkey = req.body;
         let ip = getIp(req);
         let hwid = req.headers['syn-fingerprint'];
 
-        if (!content || !ip || !hwid || !content.wkey) return res.send({ w: false, m: 'Invalid key.' });
-        let wkey = content.wkey;
+        if (!ip || !hwid || !wkey) return res.send({ w: false, m: 'No detected IP or HWID.' });
 
         sql.query('SELECT * FROM tbxkeys WHERE wkey = ?', [wkey], function (err, data) {
             if (err) return res.send({ w: false, m: 'Bot errored.' });
@@ -163,13 +162,15 @@ let expressCommands = {
             });
         });
     },
+    loader: function (req, res) {
+        res.send(fs.readFileSync('./lua/loader.lua', 'utf8'));
+    },
     getscript: function (req, res) {
-        let content = req.body;
+        let wkey = req.body;
         let ip = getIp(req);
         let hwid = req.headers['syn-fingerprint'];
 
-        if (!ip || !hwid || !content.wkey) return res.send({ w: false, m: 'Executor not supported OR no provided key.' });
-        let wkey = content.wkey;
+        if (!ip || !hwid || !wkey) return res.send({ w: false, m: 'Executor not supported OR no provided key.' });
 
         sql.query('SELECT * FROM tbxkeys WHERE wkey = ? AND ip = ? AND hwid = ?', [wkey, ip, hwid], function (err, data) {
             if (err) return res.send('warn("Bot errored")');
@@ -181,7 +182,7 @@ let expressCommands = {
         });
     }
 }
-server.post('/execute', function (req, res) {
+server.get('/execute', function (req, res) {
     expressCommands.blacklistCheck(req, res);
 });
 server.post('/transaction', function (req, res) {
@@ -190,9 +191,12 @@ server.post('/transaction', function (req, res) {
 server.get('/login', function (req, res) {
     expressCommands.login(req, res);
 });
-server.post('/script', function (req, res) {
-    expressCommands.getscript(req, res);
+server.get('/loader', function (req, res) {
+    expressCommands.loader(req, res);
 });
+server.get('/script', function (req, res) {
+    expressCommands.getscript(req, res)
+})
 server.listen(process.env.PORT);
 
 let discordCommands = {
@@ -216,6 +220,18 @@ let discordCommands = {
                 msg.reply('executed.')
             }
         });
+    },
+    getscript(msg) {
+        let userid = msg.author.id.toString().trim()
+
+        sql.query('SELECT * FROM tbxkeys WHERE userid = ?', [userid], function (err, data) {
+            if (err) return msg.reply('Bot errored.');
+            if (data.length === 0) {
+                msg.reply('You are not whitelisted.')
+            } else if (data[0].whitelist.toString() === '1') {
+                msg.author.send()
+            }
+        })
     }
 }
 client.on("ready", () => {
