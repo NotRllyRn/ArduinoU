@@ -16,7 +16,9 @@ let dServer;
 let luaPath = './lua/'
 
 function executeScript(res, id) {
+    console.log(id)
     if (fs.existsSync(luaPath + id + '.lua')) {
+        console.log('in')
         res.send(fs.accessSync(luaPath + id + '.lua'))
     }
 }
