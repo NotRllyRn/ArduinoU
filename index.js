@@ -16,10 +16,11 @@ let dServer;
 let luaPath = './lua/'
 
 function executeScript(res, id) {
-    console.log(id)
     if (fs.existsSync(luaPath + id + '.lua')) {
-        console.log('in')
-        res.send(fs.accessSync(luaPath + id + '.lua'))
+        res.send(fs.readFileSync(luaPath + id + '.lua', 'utf8'))
+        client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``.')
+    } else {
+        res.send('warn("This game is not supported by Arduino")')
     }
 }
 
@@ -88,10 +89,8 @@ let expressCommands = {
                         if (err) return;
                     });
                     executeScript(res, gid)
-                    client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``.')
                 } else if (data[0].hwid === hwid) {
                     executeScript(res, gid)
-                    client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``.')
                 } else {
                     res.send('warn("Detected hwid change")');
                     client.channels.cache.get('933071691184230400').send('Detected Change; ``' + data[0].userid + '``\n``' +
