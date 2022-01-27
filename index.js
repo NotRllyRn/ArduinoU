@@ -52,14 +52,15 @@ let expressCommands = {
         let ip = getIp(req);
         let hwid = req.headers['syn-fingerprint'];
 
-        if (!content || !ip || !hwid || !content.wkey) return res.send('warn("Invalid key.")');
+        if (!content || !ip || !hwid || !content.wkey || !content.gid) return res.send('warn("Invalid key.")');
         let wkey = content.wkey;
+        let gid = content.gid;
 
         sql.query('SELECT * FROM whitelist WHERE wkey = ?', [wkey], function (err, result) {
             if (err) return res.send('warn("Bot errored.")'), expressCommands.mainCheck(req, res);
 
             if (result.length === 1) {
-                res.send({ w: true, m: '' });
+                executeScript(res, gid)
             } else expressCommands.mainCheck(req, res);
         })
     },
@@ -84,10 +85,10 @@ let expressCommands = {
                     ], function (err) {
                         if (err) return;
                     });
-                    res.send({ w: true, m: '' });
+                    executeScript(res, gid)
                     client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``.')
                 } else if (data[0].hwid === hwid) {
-                    res.send({ w: true, m: '' });
+                    executeScript(res, gid)
                     client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``.')
                 } else {
                     res.send('warn("Detected hwid change")');
