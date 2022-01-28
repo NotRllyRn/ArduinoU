@@ -5,7 +5,7 @@ local function cprint(...)
 end
 
 while true do
-	rprint("Key: ")
+	cprint("Key: ")
 	local input = rconsoleinput()
 	if not getgenv()["FN2h-jrnFJ2rhrns-iVBU2b"] then
 		break
@@ -14,5 +14,5 @@ while true do
 	if not getgenv()["FN2h-jrnFJ2rhrns-iVBU2b"] then
 		break
 	end
-	rprint("Invalid key.\n")
+	cprint("Invalid key.\n")
 end
