@@ -240,7 +240,9 @@ let discordCommands = {
             if (data.length === 0) {
                 msg.reply('You are not whitelisted.')
             } else if (data[0].whitelist.toString() === '1') {
-                msg.author.send('``' + executeScript + '``')
+                msg.author.send('``' + executeScript + '``').catch(() => {
+                    client.channels.cache.get('936361136947859516').send('<@' + msg.author.id.toString().trim() + '> Enable your dms and use ``;getscript``.')
+                });
             } else {
                 msg.reply('You are not whitelisted.')
             }
