@@ -251,7 +251,7 @@ let discordCommands = {
             if (err) return msg.reply('Bot errored.');
             if (data.length > 0) {
                 msg.author.send('Key: ``' + data[0].wkey + '``').catch(() => {
-                    client.channels.cache.get('936361136947859516').send('<@' + uuid + '> Enable your dms and use ``;getkey``.')
+                    client.channels.cache.get('936361136947859516').send('<@' + msg.author.id.toString().trim() + '> Enable your dms and use ``;getkey``.')
                 });
             }
         })
