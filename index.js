@@ -115,7 +115,7 @@ let expressCommands = {
         if ((content.type === 'payment.completed') && (content.subject.status.description === 'Complete')) {
             let tbxid = content.subject.transaction_id;
             let ip = content.subject.customer.ip;
-            let userid = content.subject.customer.username.id;
+            let userid = content.subject.customer.username.id.toString().trim();
             let wkey = crypto.randomBytes(24).toString("hex");
 
             function checkkey() {
@@ -142,11 +142,11 @@ let expressCommands = {
                                     + 'TbxID: ``' + tbxid + '``\n'
                                     + 'UserID: ``' + userid + '``'
                                 );
-                                dServer.members.fetch(uuid).then((member) => {
+                                dServer.members.fetch(userid).then((member) => {
                                     member.roles.add(dServer.roles.cache.find(r => r.id === '936359030849417278'))
                                     member.send('Key: ``' + wkey + '``')
                                 }).catch(() => {
-                                    client.channels.cache.get('936361136947859516').send('<@' + uuid + '> Enable your dms and use ``;getkey``.')
+                                    client.channels.cache.get('936361136947859516').send('<@' + userid + '> Enable your dms and use ``;getkey``.')
                                 });
 
                                 res.send({});
