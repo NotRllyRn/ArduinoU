@@ -206,7 +206,7 @@ server.get('/login', function (req, res) {
 server.get('/loader', function (req, res) {
     expressCommands.loader(req, res);
 });
-server.get('/script', function (req, res) {
+server.post('/script', function (req, res) {
     console.log(req.body)
     expressCommands.getscript(req, res)
 })
