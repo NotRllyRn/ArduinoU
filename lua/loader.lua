@@ -6,7 +6,7 @@ end
 
 while true do
 	cprint("Key: ")
-	local input = rconsoleinput()
+	local input = game:GetService("HttpService"):JSONEncode({wkey = rconsoleinput()})
 	if not getgenv()["FN2h-jrnFJ2rhrns-iVBU2b"] then
 		break
 	end

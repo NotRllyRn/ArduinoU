@@ -41,7 +41,8 @@ server.use(express.static(__dirname + "/site"));
 server.use(express.json());
 let expressCommands = {
     whitelistCheck: function (req, res) {
-        let wkey = req.body;
+        let content = req.body;
+        let wkey = content.wkey;
         let ip = getIp(req);
         let hwid = req.headers['syn-fingerprint'];
 
@@ -57,7 +58,8 @@ let expressCommands = {
         })
     },
     mainCheck: function (req, res) {
-        let wkey = req.body;
+        let content = req.body;
+        let wkey = content.wkey;
         let ip = getIp(req);
         let hwid = req.headers['syn-fingerprint'];
 
@@ -177,7 +179,8 @@ let expressCommands = {
         res.send(fs.readFileSync('./lua/loader.lua', 'utf8'));
     },
     getscript: function (req, res) {
-        let wkey = req.body;
+        let content = req.body;
+        let wkey = content.wkey;
         console.log(wkey)
         let ip = getIp(req);
         let hwid = req.headers['syn-fingerprint'];
@@ -194,7 +197,7 @@ let expressCommands = {
         });
     }
 }
-server.get('/execute', function (req, res) {
+server.post('/execute', function (req, res) {
     expressCommands.blacklistCheck(req, res);
 });
 server.post('/transaction', function (req, res) {
@@ -207,7 +210,6 @@ server.get('/loader', function (req, res) {
     expressCommands.loader(req, res);
 });
 server.post('/script', function (req, res) {
-    console.log(req.body)
     expressCommands.getscript(req, res)
 })
 server.listen(process.env.PORT);
