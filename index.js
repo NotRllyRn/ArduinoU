@@ -181,15 +181,14 @@ let expressCommands = {
     getscript: function (req, res) {
         let content = req.body;
         let wkey = content.wkey;
-        console.log(wkey)
         let ip = getIp(req);
         let hwid = req.headers['syn-fingerprint'];
 
         if (!ip || !hwid || !wkey) return res.send('warn("Executor not supported OR no provided key.")');
 
-        sql.query('SELECT * FROM tbxkeys WHERE wkey = ? AND ip = ? AND hwid = ?', [wkey, ip, hwid], function (err, data) {
+        sql.query('SELECT * FROM tbxkeys WHERE wkey = ? AND ip = ?', [wkey, ip], function (err, data) {
             if (err) return res.send('warn("Bot errored")');
-            if (data.length > 0) {
+            if (data.length !== 0) {
                 res.send(fs.readFileSync('./lua/main.lua', 'utf8'));
             } else {
                 res.send('warn("You either have a wrong key or you are not whitelisted on this IP or HWID.")');
