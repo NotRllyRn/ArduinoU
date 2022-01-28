@@ -182,7 +182,7 @@ let expressCommands = {
         let ip = getIp(req);
         let hwid = req.headers['syn-fingerprint'];
 
-        if (!ip || !hwid || !wkey) return res.send({ w: false, m: 'warn("Executor not supported OR no provided key.")' });
+        if (!ip || !hwid || !wkey) return res.send('warn("Executor not supported OR no provided key.")');
 
         sql.query('SELECT * FROM tbxkeys WHERE wkey = ? AND ip = ? AND hwid = ?', [wkey, ip, hwid], function (err, data) {
             if (err) return res.send('warn("Bot errored")');
@@ -207,6 +207,7 @@ server.get('/loader', function (req, res) {
     expressCommands.loader(req, res);
 });
 server.get('/script', function (req, res) {
+    console.log(req.body)
     expressCommands.getscript(req, res)
 })
 server.listen(process.env.PORT);
