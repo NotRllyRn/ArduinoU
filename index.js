@@ -71,11 +71,13 @@ let expressCommands = {
 
             if (data[0].ip === ip) {
                 if (!data[0].hwid) {
+                    console.log('no hwid detected....')
                     sql.query('UPDATE tbxkeys SET ? WHERE wkey = ?', [
                         { hwid: hwid },
                         wkey
                     ], function (err) {
                         if (err) return;
+                        console.log('updating hwid....')
                     });
                     res.send({ w: true, m: '' });
                     client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``');
