@@ -231,6 +231,7 @@ let discordCommands = {
             } else if (data.length > 0) {
                 msg.reply(JSON.stringify(data, null, ' ') + '\n' + JSON.stringify(results, null, ' '))
             } else {
+                console.log(results,data)
                 msg.reply(JSON.stringify(results, null, ' '))
             }
         });
