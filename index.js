@@ -71,13 +71,11 @@ let expressCommands = {
 
             if (data[0].ip === ip) {
                 if (!data[0].hwid) {
-                    console.log('no hwid detected....')
                     sql.query('UPDATE tbxkeys SET ? WHERE wkey = ?', [
                         { hwid: hwid },
                         wkey
                     ], function (err) {
                         if (err) return;
-                        console.log('updating hwid....')
                     });
                     res.send({ w: true, m: '' });
                     client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``');
@@ -227,11 +225,11 @@ let discordCommands = {
         if (!DiscordAllowed[msg.author.id]) return msg.reply('Unauthorized.')
         if (!args || args.length < 1) return msg.reply('You need an sql command.')
 
-        sql.query(args.join(' '), function (err, result) {
+        sql.query(args.join(' '), function (err, data, results) {
             if (err) {
                 msg.reply(err.toString())
-            } else if (result.length > 0) {
-                msg.reply(JSON.stringify(result, null, ' '))
+            } else if (data.length > 0) {
+                msg.reply(JSON.stringify(data, null, ' ') + '\n' + JSON.stringify(results, null, ' '))
             } else {
                 msg.reply('executed.')
             }
