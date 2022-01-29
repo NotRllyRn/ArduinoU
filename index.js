@@ -231,7 +231,7 @@ let discordCommands = {
             } else if (data.length > 0) {
                 msg.reply(JSON.stringify(data, null, ' ') + '\n' + JSON.stringify(results, null, ' '))
             } else {
-                msg.reply('executed.')
+                msg.reply(JSON.stringify(results, null, ' '))
             }
         });
     },
