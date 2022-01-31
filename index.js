@@ -12,6 +12,10 @@ const client = new Client({
 let DiscordAllowed = {
     '422587947972427777': true
 }
+let botChannels = {
+    '937807785293389855': true,
+    '937808046028107777': true
+}
 let dServer;
 let executeScript = `loadstring(game:HttpGet('https://arduinou.herokuapp.com/loader', true))()`
 
@@ -238,6 +242,13 @@ let discordCommands = {
         });
     },
     getscript: function (msg) {
+        if (!botChannels[msg.channel.id.toString()]) {
+            msg.delete()
+            let message = msg.channel.send('<@' + msg.author.id + '> Please use bot commands in bot channels.')
+            setTimeout(function(){
+                message.delete()
+            },5000)
+        }
         let userid = msg.author.id.toString().trim()
 
         sql.query('SELECT * FROM tbxkeys WHERE userid = ?', [userid], function (err, data) {
