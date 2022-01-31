@@ -244,10 +244,11 @@ let discordCommands = {
     getscript: function (msg) {
         if (!botChannels[msg.channel.id.toString()]) {
             msg.delete()
-            let message = msg.channel.send('<@' + msg.author.id + '> Please use bot commands in bot channels.')
-            return setTimeout(function(){
-                message.delete()
-            },5000);
+            return msg.channel.send('<@' + msg.author.id + '> Please use bot commands in bot channels.').then(message => {
+                setTimeout(function () {
+                    message.delete()
+                }, 5000);
+            })
         }
         let userid = msg.author.id.toString().trim()
 
@@ -267,10 +268,11 @@ let discordCommands = {
     getkey: function (msg) {
         if (!botChannels[msg.channel.id.toString()]) {
             msg.delete()
-            let message = msg.channel.send('<@' + msg.author.id + '> Please use bot commands in bot channels.')
-            return setTimeout(function(){
-                message.delete()
-            },5000);
+            return msg.channel.send('<@' + msg.author.id + '> Please use bot commands in bot channels.').then(message => {
+                setTimeout(function () {
+                    message.delete()
+                }, 5000);
+            })
         }
         sql.query('SELECT * FROM tbxkeys WHERE userid = ?', [msg.author.id.toString().trim()], function (err, data) {
             if (err) return msg.reply('Bot errored.');
@@ -284,10 +286,11 @@ let discordCommands = {
     getrole: function (msg) {
         if (!botChannels[msg.channel.id.toString()]) {
             msg.delete()
-            let message = msg.channel.send('<@' + msg.author.id + '> Please use bot commands in bot channels.')
-            return setTimeout(function(){
-                message.delete()
-            },5000);
+            return msg.channel.send('<@' + msg.author.id + '> Please use bot commands in bot channels.').then(message => {
+                setTimeout(function () {
+                    message.delete()
+                }, 5000);
+            })
         }
         if (msg.member.roles.cache.some(r => r.id === '936359030849417278')) {
             msg.reply(`You already have Buyer role.`)
