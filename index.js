@@ -122,14 +122,14 @@ let expressCommands = {
             let tbxid = content.subject.transaction_id;
             let ip = content.subject.customer.ip;
             let userid = content.subject.customer.username.id.toString().trim();
-            let wkey = crypto.randomBytes(24).toString("hex");
+            let wkey = crypto.randomBytes(12).toString("hex");
 
             function checkkey() {
                 sql.query(`SELECT * FROM tbxkeys WHERE wkey = ? OR tbxid = ?`, [wkey, tbxid], function (err, data) {
                     if (err) return res.send({});
                     if (data.length !== 0) {
                         if (data[0].wkey === wkey) {
-                            wkey = crypto.randomBytes(24).toString("hex");
+                            wkey = crypto.randomBytes(12).toString("hex");
                             checkkey();
                         } else res.send({});
                     } else {
