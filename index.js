@@ -146,9 +146,11 @@ let expressCommands = {
                                 );
                                 dServer.members.fetch(userid).then((member) => {
                                     member.roles.add(dServer.roles.cache.find(r => r.id === '936359030849417278'))
-                                    member.send('Key: ``' + wkey + '``')
+                                    member.send('Key: ``' + wkey + '``').catch(() => {
+                                        client.channels.cache.get('936361136947859516').send('<@' + userid + '> Enable your dms and use ``;getkey``.')
+                                    });
                                 }).catch(() => {
-                                    client.channels.cache.get('936361136947859516').send('<@' + userid + '> Enable your dms and use ``;getkey``.')
+                                    client.channels.cache.get('933071691184230400').send('``' + userid + '`` was not in server when buying.\n``' + tbxid + '``')
                                 });
 
                                 res.send({});
@@ -265,7 +267,7 @@ let discordCommands = {
         if (msg.member.roles.cache.some(r => r.id === '936359030849417278')) {
             msg.reply(`You already have Buyer role.`)
         } else {
-            sql.query(`SELECT * FROM tbxkeys WHERE userid = ?`,[msg.author.id.toString().trim()],function(err,data){
+            sql.query(`SELECT * FROM tbxkeys WHERE userid = ?`, [msg.author.id.toString().trim()], function (err, data) {
                 if (err) return msg.reply('An error occoured.');
                 if (data.length > 0) {
                     msg.member.roles.add(dServer.roles.cache.find(r => r.id === '936359030849417278'));
