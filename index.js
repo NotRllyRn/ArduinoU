@@ -286,7 +286,8 @@ let discordCommands = {
         })
     },
     getrole: function (msg) {
-        if (!botChannels[msg.channel.id.toString()] && !(msg.channel.type == 'DM')) {
+        if (msg.channel.type == 'DM') return msg.reply('Use this command in the guild.');
+        if (!botChannels[msg.channel.id.toString()]) {
             msg.delete()
             return msg.channel.send('<@' + msg.author.id + '> Please use bot commands in bot channels.').then(message => {
                 setTimeout(function () {
