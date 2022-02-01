@@ -242,7 +242,7 @@ let discordCommands = {
         });
     },
     getscript: function (msg) {
-        if (!botChannels[msg.channel.id.toString()]) {
+        if (!botChannels[msg.channel.id.toString()] && !(msg.channel.type == 'DM')) {
             msg.delete()
             return msg.channel.send('<@' + msg.author.id + '> Please use bot commands in bot channels.').then(message => {
                 setTimeout(function () {
@@ -266,7 +266,7 @@ let discordCommands = {
         })
     },
     getkey: function (msg) {
-        if (!botChannels[msg.channel.id.toString()]) {
+        if (!botChannels[msg.channel.id.toString()] && !(msg.channel.type == 'DM')) {
             msg.delete()
             return msg.channel.send('<@' + msg.author.id + '> Please use bot commands in bot channels.').then(message => {
                 setTimeout(function () {
@@ -286,7 +286,7 @@ let discordCommands = {
         })
     },
     getrole: function (msg) {
-        if (!botChannels[msg.channel.id.toString()]) {
+        if (!botChannels[msg.channel.id.toString()] && !(msg.channel.type == 'DM')) {
             msg.delete()
             return msg.channel.send('<@' + msg.author.id + '> Please use bot commands in bot channels.').then(message => {
                 setTimeout(function () {
