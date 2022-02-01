@@ -235,7 +235,7 @@ let discordCommands = {
             if (err) {
                 msg.reply(err.toString())
             } else if (data.length > 0) {
-                msg.reply(JSON.stringify(data, null, ' ') + '\n' + JSON.stringify(results, null, ' '))
+                msg.reply(JSON.stringify(data, null, ' '))
             } else {
                 msg.reply(JSON.stringify(data, null, ' '))
             }
@@ -280,6 +280,8 @@ let discordCommands = {
                 msg.author.send('Key: ``' + data[0].wkey + '``').catch(() => {
                     client.channels.cache.get('936361136947859516').send('<@' + msg.author.id.toString().trim() + '> Enable your dms and use ``;getkey``.')
                 });
+            } else {
+                msg.reply('You are not whitelisted.')
             }
         })
     },
