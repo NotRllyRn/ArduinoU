@@ -19,6 +19,10 @@ let botChannels = {
 let dServer;
 let executeScript = `loadstring(game:HttpGet('https://arduinou.herokuapp.com/loader', true))()`
 
+function hasher(v) {
+    let hased = crypto.createHash('sha3-256').update(v).digest('hex')
+    return hased
+}
 function getIp(req) {
     return (req.headers['x-forwarded-for'] || '').split(',').pop().trim();
 }
@@ -51,6 +55,8 @@ let expressCommands = {
         let hwid = req.headers['syn-fingerprint'];
 
         if (!ip || !hwid || !wkey) return res.send({ w: false, m: 'No detected IP or HWID.' });
+        ip = hasher(ip);
+        hwid = hasher(hwid);
 
         sql.query('SELECT * FROM whitelist WHERE wkey = ?', [wkey], function (err, result) {
             if (err) return res.send({ w: false, m: 'Bot errored.' }), expressCommands.mainCheck(req, res);
@@ -68,6 +74,8 @@ let expressCommands = {
         let hwid = req.headers['syn-fingerprint'];
 
         if (!ip || !hwid || !wkey) return res.send({ w: false, m: 'No detected IP or HWID.' });
+        ip = hasher(ip);
+        hwid = hasher(hwid);
 
         sql.query('SELECT * FROM tbxkeys WHERE wkey = ?', [wkey], function (err, data) {
             if (err) return res.send({ w: false, m: 'Bot errored.' });
@@ -88,15 +96,11 @@ let expressCommands = {
                     client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``');
                 } else {
                     res.send({ w: false, m: 'Detected HWID change.' });
-                    client.channels.cache.get('933071691184230400').send('Detected Change; ``' + data[0].userid + '``\n``' +
-                        data[0].ip + ' < ' + ip + '``\n``' + data[0].hwid + ' < ' + hwid + '``'
-                    );
+                    client.channels.cache.get('933071691184230400').send('Hwid change detected from ``' + data[0].userid + '``');
                 }
             } else {
                 res.send({ w: false, m: 'Detected IP change.' });
-                client.channels.cache.get('933071691184230400').send('Detected Change; ``' + data[0].userid + '``\n``' +
-                    data[0].ip + ' < ' + ip + '``\n``' + data[0].hwid + ' < ' + hwid + '``'
-                );
+                client.channels.cache.get('933071691184230400').send('Ip change detected from ``' + data[0].userid + '``')
             }
         })
     },
@@ -105,9 +109,11 @@ let expressCommands = {
         let hwid = req.headers['syn-fingerprint'];
 
         if (!ip || !hwid) return res.send({ w: false, m: 'Executor not supported.' });
+        ip = hasher(ip);
+        hwid = hasher(hwid);
 
         sql.query('SELECT * FROM blacklisted WHERE ip = ? OR hwid = ?', [ip, hwid], function (err, result) {
-            if (err) return res.send({ w: false, m: 'Bot errored.' }), expressCommands.whitelistCheck(req, res);
+            if (err) return res.send({ w: false, m: 'Bot errored.' });
 
             if (result.length === 1) return res.send({ w: false, m: "You're blacklisted." }); else expressCommands.whitelistCheck(req, res);
         })
@@ -120,7 +126,7 @@ let expressCommands = {
 
         if ((content.type === 'payment.completed') && (content.subject.status.description === 'Complete')) {
             let tbxid = content.subject.transaction_id;
-            let ip = content.subject.customer.ip;
+            let ip = hasher(content.subject.customer.ip);
             let userid = content.subject.customer.username.id.toString().trim();
             let wkey = crypto.randomBytes(12).toString("hex");
 
@@ -143,8 +149,7 @@ let expressCommands = {
                             if (err) return res.send({}); else {
                                 let uuid = content.subject.customer.username.username.toString().trim()
                                 client.channels.cache.get('933071643637612554').send(
-                                    '``' + uuid + '`` Whitelisted.\n'
-                                    + 'Ip: ``' + ip + '``\n'
+                                    '``' + uuid + '`` Whitelisted.\n' +
                                     + 'TbxID: ``' + tbxid + '``\n'
                                     + 'UserID: ``' + userid + '``'
                                 );
