@@ -239,8 +239,6 @@ let discordCommands = {
         sql.query(args.join(' '), function (err, data, results) {
             if (err) {
                 msg.reply(err.toString())
-            } else if (data.length > 0) {
-                msg.reply(JSON.stringify(data, null, ' '))
             } else {
                 msg.reply(JSON.stringify(data, null, ' '))
             }
