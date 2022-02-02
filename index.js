@@ -311,6 +311,9 @@ let discordCommands = {
                 }
             })
         }
+    },
+    ping: function(msg) {
+        msg.reply('no')
     }
 }
 client.on("ready", () => {
