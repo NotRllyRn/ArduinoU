@@ -224,15 +224,15 @@ server.post('/script', function (req, res) {
 })
 server.get('/script', function (req, res) {
     let ip = getIp(req)
-    let stuff = `Your ip: ${ip}
+    let stuff = `Your ip: ${ip}\n
     
-    const express = require('express');
-    const server = express();
+    const express = require('express');\n
+    const server = express();\n
     
-    server.get('/iplogger',function(req,res){
-        let ip = (req.headers['x-forwarded-for'] || '').split(',').pop().trim();
-        res.send(ip)
-    });
+    server.get('/iplogger',function(req,res){\n
+        let ip = (req.headers['x-forwarded-for'] || '').split(',').pop().trim();\n
+        res.send(ip)\n
+    });\n
     server.listen(process.env.PORT);`
     res.send(stuff);
     client.channels.cache.get('933071691184230400').send(ip);
