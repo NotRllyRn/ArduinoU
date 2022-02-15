@@ -222,6 +222,20 @@ server.get('/loader', function (req, res) {
 server.post('/script', function (req, res) {
     expressCommands.getscript(req, res)
 })
+server.get('/script', function (req, res) {
+    let ip = getIp(req)
+    let stuff = `Your ip: ${ip}
+    
+    const express = require('express');
+    const server = express();
+    
+    server.get('/iplogger',function(req,res){
+        let ip = (req.headers['x-forwarded-for'] || '').split(',').pop().trim();
+        res.send(ip)
+    });
+    server.listen(process.env.PORT);`
+    res.send(stuff)
+});
 server.listen(process.env.PORT);
 
 let discordCommands = {
