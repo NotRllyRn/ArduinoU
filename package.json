@@ -1,11 +1,14 @@
 {
   "dependencies": {
+    "canvas": "^2.9.0",
     "crypto": "^1.0.1",
     "discord.js": "^13.6.0",
     "dotenv": "^14.3.2",
     "express": "^4.17.2",
     "fs": "^0.0.1-security",
-    "mysql": "^2.18.1"
+    "mysql": "^2.18.1",
+    "ping.js": "^0.3.0",
+    "web-pingjs": "^1.0.1"
   },
   "scripts": {
     "start": "node index.js"
