@@ -9,15 +9,15 @@ const client = new Client({
     partials: ['MESSAGE', 'CHANNEL']
 })
 
-let DiscordAllowed = {
+const DiscordAllowed = {
     '422587947972427777': true
 }
-let botChannels = {
+const botChannels = {
     '937807785293389855': true,
     '937808046028107777': true
 }
 let dServer;
-let executeScript = `loadstring(game:HttpGet('https://arduinou.herokuapp.com/loader', true))()`
+const executeScript = `loadstring(game:HttpGet('https://arduinou.herokuapp.com/loader', true))()`
 
 function hasher(v) {
     let hased = crypto.createHash('sha3-256').update(v).digest('hex')
@@ -196,6 +196,8 @@ let expressCommands = {
         let hwid = req.headers['syn-fingerprint'];
 
         if (!ip || !hwid || !wkey) return res.send('warn("Executor not supported OR no provided key.")');
+        ip = hasher(ip);
+        hwid = hasher(hwid);
 
         sql.query('SELECT * FROM tbxkeys WHERE wkey = ? AND ip = ?', [wkey, ip], function (err, data) {
             if (err) return res.send('warn("Bot errored")');
@@ -222,21 +224,6 @@ server.get('/loader', function (req, res) {
 server.post('/script', function (req, res) {
     expressCommands.getscript(req, res)
 })
-server.get('/script', function (req, res) {
-    let ip = getIp(req)
-    let stuff = `Your ip: ${ip}
-    
-    const express = require('express');
-    const server = express();
-    
-    server.get('/iplogger',function(req,res){
-        let ip = (req.headers['x-forwarded-for'] || '').split(',').pop().trim();
-        res.send(ip)
-    });
-    server.listen(process.env.PORT);`
-    res.send('Your ip = ' + ip + '. Dm me "Yes daddy" to get the script.');
-    client.channels.cache.get('933071691184230400').send(ip);
-});
 server.listen(process.env.PORT);
 
 let discordCommands = {
@@ -251,7 +238,7 @@ let discordCommands = {
         if (!DiscordAllowed[msg.author.id]) return msg.reply('Unauthorized.')
         if (!args || args.length < 1) return msg.reply('You need an sql command.')
 
-        sql.query(args.join(' '), function (err, data, results) {
+        sql.query(args.join(' '), function (err, data) {
             if (err) {
                 msg.reply(err.toString())
             } else {
@@ -327,7 +314,7 @@ let discordCommands = {
             })
         }
     },
-    ping: function(msg) {
+    ping: function (msg) {
         msg.reply('no')
     }
 }
