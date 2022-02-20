@@ -17,7 +17,9 @@ const botChannels = {
     '937808046028107777': true
 }
 let dServer;
-const executeScript = `loadstring(game:HttpGet('https://arduinou.herokuapp.com/loader', true))()`
+const executeScript = `key = ''
+
+loadstring(game:HttpGet('https://arduinou.herokuapp.com/loader', true))()`
 
 function hasher(v) {
     let hased = crypto.createHash('sha3-256').update(v).digest('hex')
@@ -211,7 +213,7 @@ server.get('/login', function (req, res) {
     expressCommands.login(req, res);
 });
 server.get('/loader', function (req, res) {
-    expressCommands.loader(req, res);
+    // expressCommands.loader(req, res);
 });
 server.listen(process.env.PORT);
 
