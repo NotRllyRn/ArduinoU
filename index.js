@@ -149,7 +149,7 @@ let expressCommands = {
                             if (err) return res.send({}); else {
                                 let uuid = content.subject.customer.username.username.toString().trim()
                                 client.channels.cache.get('933071643637612554').send(
-                                    '``' + uuid + '`` Whitelisted.\n``' +
+                                    '``' + uuid + '`` Whitelisted.\n``'
                                     + 'TbxID: ``' + tbxid + '``\n'
                                     + 'UserID: ``' + userid + '``'
                                 );
