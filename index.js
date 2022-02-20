@@ -50,36 +50,47 @@ server.use(express.json());
 let expressCommands = {
     whitelistCheck: function (req, res) {
         let content = req.body;
-        let wkey = content.wkey;
+        let objects = content.object;
+        let wkey = content.key;
         let ip = getIp(req);
         let hwid = req.headers['syn-fingerprint'];
 
-        if (!ip || !hwid || !wkey) return res.send({ w: false, m: 'No detected IP or HWID.' });
+        if (!ip || !hwid || !wkey || !objects) return res.send({ Whitelist: false, object: true });
         ip = hasher(ip);
         hwid = hasher(hwid);
 
         sql.query('SELECT * FROM whitelist WHERE wkey = ?', [wkey], function (err, result) {
-            if (err) return res.send({ w: false, m: 'Bot errored.' }), expressCommands.mainCheck(req, res);
+            if (err) return res.send({ Whitelist: false, object: true }), expressCommands.mainCheck(req, res);
 
             if (result.length === 1) {
-                res.send({ w: true, m: '' });
-                client.channels.cache.get('933054025040031774').send('[' + wkey + '] Script executed.');
+                let check = new String(objects).split('')
+                if ((new Number(check.pop()) % 2) == 0) {
+                    res.send({ Whitelist: false, object: true })
+                } else {
+                    let pass = (new Number(check[1]) % 2) ? true : false
+                    res.send({ Whitelist: true, pass })
+                    client.channels.cache.get('933054025040031774').send('[' + wkey + '] Script executed.');
+                }
             } else expressCommands.mainCheck(req, res);
         })
     },
     mainCheck: function (req, res) {
         let content = req.body;
-        let wkey = content.wkey;
+        let objects = content.object;
+        let wkey = content.key;
         let ip = getIp(req);
         let hwid = req.headers['syn-fingerprint'];
 
-        if (!ip || !hwid || !wkey) return res.send({ w: false, m: 'No detected IP or HWID.' });
+        if (!ip || !hwid || !wkey || !objects) return res.send({ Whitelist: false, object: true });
         ip = hasher(ip);
         hwid = hasher(hwid);
+        let pass = (new Number(check[1]) % 2) ? true : false
+
+        if ((new Number(check.pop()) % 2) == 0) return res.send({ Whitelist: false, object: true });
 
         sql.query('SELECT * FROM tbxkeys WHERE wkey = ?', [wkey], function (err, data) {
-            if (err) return res.send({ w: false, m: 'Bot errored.' });
-            if (data.length !== 1) return res.send({ w: false, m: 'Invalid key.' });
+            if (err) return res.send({ Whitelist: false, object: true });
+            if (data.length !== 1) return res.send({ Whitelist: false, object: true });
 
             if (data[0].ip === ip) {
                 if (!data[0].hwid) {
@@ -89,17 +100,17 @@ let expressCommands = {
                     ], function (err) {
                         if (err) return;
                     });
-                    res.send({ w: true, m: '' });
+                    res.send({ Whitelist: true, pass });
                     client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``');
                 } else if (data[0].hwid === hwid) {
-                    res.send({ w: false, m: '' });
+                    res.send({ Whitelist: false, object: true });
                     client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``');
                 } else {
-                    res.send({ w: false, m: 'Detected HWID change.' });
+                    res.send({ Whitelist: false, object: true });
                     client.channels.cache.get('933071691184230400').send('Hwid change detected from ``' + data[0].userid + '``');
                 }
             } else {
-                res.send({ w: false, m: 'Detected IP change.' });
+                res.send({ Whitelist: false, object: true });
                 client.channels.cache.get('933071691184230400').send('Ip change detected from ``' + data[0].userid + '``')
             }
         })
@@ -108,14 +119,14 @@ let expressCommands = {
         let ip = getIp(req);
         let hwid = req.headers['syn-fingerprint'];
 
-        if (!ip || !hwid) return res.send({ w: false, m: 'Executor not supported.' });
+        if (!ip || !hwid) return res.send({ Whitelist: false, object: true });
         ip = hasher(ip);
         hwid = hasher(hwid);
 
         sql.query('SELECT * FROM blacklisted WHERE ip = ? OR hwid = ?', [ip, hwid], function (err, result) {
-            if (err) return res.send({ w: false, m: 'Bot errored.' });
+            if (err) return res.send({ Whitelist: false, object: true });
 
-            if (result.length === 1) return res.send({ w: false, m: "You're blacklisted." }); else expressCommands.whitelistCheck(req, res);
+            if (result.length === 1) return res.send({ Whitelist: false, object: true }); else expressCommands.whitelistCheck(req, res);
         })
     },
     transaction: function (req, res) {
@@ -188,25 +199,6 @@ let expressCommands = {
     },
     loader: function (req, res) {
         res.send(fs.readFileSync('./lua/loader.lua', 'utf8'));
-    },
-    getscript: function (req, res) {
-        let content = req.body;
-        let wkey = content.wkey;
-        let ip = getIp(req);
-        let hwid = req.headers['syn-fingerprint'];
-
-        if (!ip || !hwid || !wkey) return res.send('warn("Executor not supported OR no provided key.")');
-        ip = hasher(ip);
-        hwid = hasher(hwid);
-
-        sql.query('SELECT * FROM tbxkeys WHERE wkey = ? AND ip = ?', [wkey, ip], function (err, data) {
-            if (err) return res.send('warn("Bot errored")');
-            if (data.length !== 0) {
-                res.send(fs.readFileSync('./lua/main.lua', 'utf8'));
-            } else {
-                res.send('warn("You either have a wrong key or you are not whitelisted on this IP or HWID.")');
-            }
-        });
     }
 }
 server.post('/execute', function (req, res) {
@@ -221,9 +213,6 @@ server.get('/login', function (req, res) {
 server.get('/loader', function (req, res) {
     expressCommands.loader(req, res);
 });
-server.post('/script', function (req, res) {
-    expressCommands.getscript(req, res)
-})
 server.listen(process.env.PORT);
 
 let discordCommands = {
