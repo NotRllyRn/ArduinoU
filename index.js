@@ -18,9 +18,9 @@ const botChannels = {
 }
 let dServer;
 const executeScript = '```lua' + `
-key = ''
+key = ''1
 
-loadstring(game:HttpGet("https://arduinou.herokuapp.com/loader", true))()
+loadstring(game:HttpGet('https://arduinou.herokuapp.com/loader', true))()
 ` + '```'
 
 function hasher(v) {
