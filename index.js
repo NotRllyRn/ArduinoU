@@ -17,7 +17,11 @@ const botChannels = {
     '937808046028107777': true
 }
 let dServer;
-const executeScript = '```lua\nkey = ""\n\nloadstring(game:HttpGet("https://arduinou.herokuapp.com/loader", true))()```'
+const executeScript = '```lua' + `
+key = ''
+
+loadstring(game:HttpGet("https://arduinou.herokuapp.com/loader", true))()
+` + '```'
 
 function hasher(v) {
     let hased = crypto.createHash('sha3-256').update(v).digest('hex')
@@ -249,7 +253,7 @@ let discordCommands = {
             if (data.length === 0) {
                 msg.reply('You are not whitelisted.')
             } else if (data[0].whitelist.toString() === '1') {
-                msg.author.send('``' + executeScript + '``').catch(() => {
+                msg.author.send(executeScript).catch(() => {
                     client.channels.cache.get('936361136947859516').send('<@' + msg.author.id.toString().trim() + '> Enable your dms and use ``;getscript``.')
                 });
             } else {
