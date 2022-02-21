@@ -54,25 +54,15 @@ let expressCommands = {
         let content = req.body;
         let objects = content.object;
         let wkey = content.key;
-        let ip = getIp(req);
-        let hwid = req.headers['syn-fingerprint'];
-
-        if (!ip || !hwid || !wkey || !objects) return res.send({ Whitelist: false, object: true });
-        ip = hasher(ip);
-        hwid = hasher(hwid);
+        let check = new String(objects).split('')
+        let pass = (new Number(check[1]) % 2) ? true : false
 
         sql.query('SELECT * FROM whitelist WHERE wkey = ?', [wkey], function (err, result) {
             if (err) return res.send({ Whitelist: false, object: true }), expressCommands.mainCheck(req, res);
 
             if (result.length === 1) {
-                let check = new String(objects).split('')
-                if ((new Number(check.pop()) % 2) == 0) {
-                    res.send({ Whitelist: false, object: true })
-                } else {
-                    let pass = (new Number(check[1]) % 2) ? true : false
-                    res.send({ Whitelist: true, pass })
-                    client.channels.cache.get('933054025040031774').send('[' + wkey + '] Script executed.');
-                }
+                res.send({ Whitelist: true, pass })
+                client.channels.cache.get('933054025040031774').send('[' + wkey + '] Script executed.');
             } else expressCommands.mainCheck(req, res);
         })
     },
@@ -80,15 +70,10 @@ let expressCommands = {
         let content = req.body;
         let objects = content.object;
         let wkey = content.key;
-        let ip = getIp(req);
-        let hwid = req.headers['syn-fingerprint'];
-
-        if (!ip || !hwid || !wkey || !objects) return res.send({ Whitelist: false, object: true });
-        ip = hasher(ip);
-        hwid = hasher(hwid);
+        let ip = hasher(getIp(req));
+        let hwid = hasher(req.headers['syn-fingerprint']);
+        let check = new String(objects).split('')
         let pass = (new Number(check[1]) % 2) ? true : false
-
-        if ((new Number(check.pop()) % 2) == 0) return res.send({ Whitelist: false, object: true });
 
         sql.query('SELECT * FROM tbxkeys WHERE wkey = ?', [wkey], function (err, data) {
             if (err) return res.send({ Whitelist: false, object: true });
@@ -105,7 +90,7 @@ let expressCommands = {
                     res.send({ Whitelist: true, pass });
                     client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``');
                 } else if (data[0].hwid === hwid) {
-                    res.send({ Whitelist: false, object: true });
+                    res.send({ Whitelist: true, object: pass });
                     client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``');
                 } else {
                     res.send({ Whitelist: false, object: true });
@@ -120,8 +105,6 @@ let expressCommands = {
     blacklistCheck: function (req, res) {
         let ip = getIp(req);
         let hwid = req.headers['syn-fingerprint'];
-
-        if (!ip || !hwid) return res.send({ Whitelist: false, object: true });
         ip = hasher(ip);
         hwid = hasher(hwid);
 
@@ -130,6 +113,21 @@ let expressCommands = {
 
             if (result.length === 1) return res.send({ Whitelist: false, object: true }); else expressCommands.whitelistCheck(req, res);
         })
+    },
+    checker: function(req,res) {
+        let content = req.body;
+        let objects = content.object;
+        let ip = getIp(req);
+        let hwid = req.headers['syn-fingerprint'];
+
+        if (!ip || !hwid || !content || !objects || !(objects.length == 3)) return res.send({ Whitelist: false, object: true });
+        ip = hasher(ip);
+        hwid = hasher(hwid);
+        let check = new String(objects).split('')
+
+        if (new Number(check.split()) % 2 == 0) return res.send({ Whitelist: false, object: false })
+        
+        expressCommands.blacklistCheck(req, res)
     },
     transaction: function (req, res) {
         let content = req.body;
