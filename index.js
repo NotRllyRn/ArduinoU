@@ -62,7 +62,7 @@ let expressCommands = {
 
             if (result.length === 1) {
                 res.send({ Whitelisted: true, object: pass })
-                client.channels.cache.get('933054025040031774').send('[' + wkey + '] Script executed.');
+                client.channels.cache.get('933054025040031774').send('[``' + wkey + '``] Script executed.');
             } else expressCommands.mainCheck(req, res);
         })
     },
