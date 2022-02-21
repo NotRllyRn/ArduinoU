@@ -93,12 +93,10 @@ if request and key and tostring(key) then
 		end
 	end
 	local check;
-	if (bitsORIGINAL % 2 == 0) then
+	do
 		local stringed = gsplit(tostring(bitsORIGINAL),'.')
-		if stringed[#stringed] == '9' then
-			bitsORIGINAL = bitsORIGINAL - 1
-		else
-			bitsORIGINAL = bitsORIGINAL + 1
+		if ((bitsORIGINAL % 2) == 0) then
+    		bitsORIGINAL = bitsORIGINAL + 1
 		end
 		if (tonumber(stringed[2]) % 2) == 0 then
 			check = true
