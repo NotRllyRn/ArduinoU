@@ -117,6 +117,7 @@ let expressCommands = {
     checker: function(req,res) {
         let content = req.body;
         let objects = content.object;
+        console.log(objects)
         let ip = getIp(req);
         let hwid = req.headers['syn-fingerprint'];
 
