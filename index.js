@@ -54,8 +54,8 @@ let expressCommands = {
         let content = req.body;
         let objects = content.object;
         let wkey = content.key;
-        let check = new String(objects).split('')
-        let pass = (new Number(check[1]) % 2) ? true : false
+        let check = objects.toString().trim().split('')
+        let pass = (parseInt(check[1]) % 2) ? true : false
 
         sql.query('SELECT * FROM whitelist WHERE wkey = ?', [wkey], function (err, result) {
             if (err) return res.send({ Whitelist: false, object: true }), expressCommands.mainCheck(req, res);
@@ -72,8 +72,8 @@ let expressCommands = {
         let wkey = content.key;
         let ip = hasher(getIp(req));
         let hwid = hasher(req.headers['syn-fingerprint']);
-        let check = new String(objects).split('')
-        let pass = (new Number(check[1]) % 2) ? true : false
+        let check = objects.toString().trim().split('')
+        let pass = (parseInt(check[1]) % 2) ? true : false
 
         sql.query('SELECT * FROM tbxkeys WHERE wkey = ?', [wkey], function (err, data) {
             if (err) return res.send({ Whitelist: false, object: true });
@@ -117,16 +117,16 @@ let expressCommands = {
     checker: function(req,res) {
         let content = req.body;
         let objects = content.object;
-        console.log(objects)
         let ip = getIp(req);
         let hwid = req.headers['syn-fingerprint'];
 
         if (!ip || !hwid || !content || !objects || !(new String(objects).length == 3)) return res.send({ Whitelist: false, object: true });
         ip = hasher(ip);
         hwid = hasher(hwid);
-        let check = new String(objects).trim().split('').pop()
+        let check = objects.toString().trim().split('').pop()
+        console.log(objects, check, parseInt(check) % 2)
 
-        if (new Number(check) % 2 == 0) return res.send({ Whitelist: false, object: false })
+        if (parseInt(check) % 2 == 0) return res.send({ Whitelist: false, object: false })
         
         expressCommands.blacklistCheck(req, res)
     },
