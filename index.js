@@ -58,10 +58,10 @@ let expressCommands = {
         let pass = (parseInt(check[1]) % 2) ? true : false
 
         sql.query('SELECT * FROM whitelist WHERE wkey = ?', [wkey], function (err, result) {
-            if (err) return res.send({ Whitelist: false, object: true }), expressCommands.mainCheck(req, res);
+            if (err) return res.send({ Whitelisted: false, object: true }), expressCommands.mainCheck(req, res);
 
             if (result.length === 1) {
-                res.send({ Whitelist: true, pass })
+                res.send({ Whitelisted: true, pass })
                 client.channels.cache.get('933054025040031774').send('[' + wkey + '] Script executed.');
             } else expressCommands.mainCheck(req, res);
         })
@@ -76,8 +76,8 @@ let expressCommands = {
         let pass = (parseInt(check[1]) % 2) ? true : false
 
         sql.query('SELECT * FROM tbxkeys WHERE wkey = ?', [wkey], function (err, data) {
-            if (err) return res.send({ Whitelist: false, object: true });
-            if (data.length !== 1) return res.send({ Whitelist: false, object: true });
+            if (err) return res.send({ Whitelisted: false, object: true });
+            if (data.length !== 1) return res.send({ Whitelisted: false, object: true });
 
             if (data[0].ip === ip) {
                 if (!data[0].hwid) {
@@ -87,17 +87,17 @@ let expressCommands = {
                     ], function (err) {
                         if (err) return;
                     });
-                    res.send({ Whitelist: true, pass });
+                    res.send({ Whitelisted: true, pass });
                     client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``');
                 } else if (data[0].hwid === hwid) {
-                    res.send({ Whitelist: true, object: pass });
+                    res.send({ Whitelisted: true, object: pass });
                     client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``');
                 } else {
-                    res.send({ Whitelist: false, object: true });
+                    res.send({ Whitelisted: false, object: true });
                     client.channels.cache.get('933071691184230400').send('Hwid change detected from ``' + data[0].userid + '``');
                 }
             } else {
-                res.send({ Whitelist: false, object: true });
+                res.send({ Whitelisted: false, object: true });
                 client.channels.cache.get('933071691184230400').send('Ip change detected from ``' + data[0].userid + '``')
             }
         })
@@ -109,9 +109,9 @@ let expressCommands = {
         hwid = hasher(hwid);
 
         sql.query('SELECT * FROM blacklisted WHERE ip = ? OR hwid = ?', [ip, hwid], function (err, result) {
-            if (err) return res.send({ Whitelist: false, object: true });
+            if (err) return res.send({ Whitelisted: false, object: true });
 
-            if (result.length === 1) return res.send({ Whitelist: false, object: true }); else expressCommands.whitelistCheck(req, res);
+            if (result.length === 1) return res.send({ Whitelisted: false, object: true }); else expressCommands.whitelistCheck(req, res);
         })
     },
     checker: function(req,res) {
@@ -120,13 +120,13 @@ let expressCommands = {
         let ip = getIp(req);
         let hwid = req.headers['syn-fingerprint'];
 
-        if (!ip || !hwid || !content || !objects || !(new String(objects).length == 3)) return res.send({ Whitelist: false, object: true });
+        if (!ip || !hwid || !content || !objects || !(new String(objects).length == 3)) return res.send({ Whitelisted: false, object: true });
         ip = hasher(ip);
         hwid = hasher(hwid);
         let check = objects.toString().trim().split('').pop()
         console.log(objects, check, parseInt(check) % 2)
 
-        if (parseInt(check) % 2 == 0) return res.send({ Whitelist: false, object: false })
+        if (parseInt(check) % 2 == 0) return res.send({ Whitelisted: false, object: false })
         
         expressCommands.blacklistCheck(req, res)
     },
