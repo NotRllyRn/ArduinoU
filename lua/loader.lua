@@ -39,8 +39,8 @@ local mainScript = function()
 	console.log("nice! you got into the script")
 end
 local request = (syn and syn.request)
-if request and key and tostring(key) and string.len(tostring(key)) == 24 then
-	local keyhere = key
+if request and key and tostring(key) then
+	local keyhere = tostring(key)
 	local jobid = game.JobId
 	local Url = 'https://arduinou.herokuapp.com/execute/'
 	local passname = ''
