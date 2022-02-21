@@ -87,7 +87,7 @@ if request and key and tostring(key) and string.len(tostring(key)) == 24 then
 				end
 			until bits % 2 == 0
 			return back.Whitelisted, back.object
-		end
+		end)
 		if (a == false) or (b == true) or (b == nil) or (c == true) or (c == nil) then
 			error('Detected.',1)
 		end
@@ -152,7 +152,7 @@ if request and key and tostring(key) and string.len(tostring(key)) == 24 then
 				end
 			until bits % 2 == 0
 			return back.Whitelisted, back.object
-		end
+		end)
 		if (a == false) or (b == true) or (b == nil) or (c == true) or (c == nil) then
 			error('Detected.',1)
 		end
