@@ -79,7 +79,7 @@ if request and key and tostring(key) then
 					["Content-Type"] = "application/json",
 				},
 				Body = FAKEparse
-			})).Body
+			}).Body)
 			bits = bits - 21
 			repeat
 				if not (bits % 2 == 0) then
@@ -120,7 +120,7 @@ if request and key and tostring(key) then
 			["Content-Type"] = "application/json",
 		},
 		Body = parse
-	})).Body
+	}).Body)
 	if bodyback.Whitelisted == true and bodyback.object == check then
 		val0 = true
 		val3 = true
@@ -144,7 +144,7 @@ if request and key and tostring(key) then
 					["Content-Type"] = "application/json",
 				},
 				Body = FAKEparse
-			})).Body
+			}).Body)
 			bits = bits - 21
 			repeat
 				if not (bits % 2 == 0) then
