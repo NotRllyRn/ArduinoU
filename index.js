@@ -213,7 +213,7 @@ server.get('/login', function (req, res) {
     expressCommands.login(req, res);
 });
 server.get('/loader', function (req, res) {
-    // expressCommands.loader(req, res);
+    expressCommands.loader(req, res);
 });
 server.listen(process.env.PORT);
 
