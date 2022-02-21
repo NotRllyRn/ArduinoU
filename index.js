@@ -55,7 +55,8 @@ let expressCommands = {
         let objects = content.object;
         let wkey = content.key;
         let check = objects.toString().trim().split('')
-        let pass = (parseInt(check[1]) % 2 == 0) ? true : false
+        let pass = ((parseInt(check[1]) % 2) == 0) ? true : false
+        console.log(checkp[1], pass)
 
         sql.query('SELECT * FROM whitelist WHERE wkey = ?', [wkey], function (err, result) {
             if (err) return res.send({ Whitelisted: false, object: true }), expressCommands.mainCheck(req, res);
@@ -73,7 +74,8 @@ let expressCommands = {
         let ip = hasher(getIp(req));
         let hwid = hasher(req.headers['syn-fingerprint']);
         let check = objects.toString().trim().split('')
-        let pass = (parseInt(check[1]) % 2 == 0) ? true : false
+        let pass = ((parseInt(check[1]) % 2) == 0) ? true : false
+        console.log(checkp[1], pass)
 
         sql.query('SELECT * FROM tbxkeys WHERE wkey = ?', [wkey], function (err, data) {
             if (err) return res.send({ Whitelisted: false, object: true });
