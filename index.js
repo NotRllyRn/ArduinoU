@@ -73,7 +73,7 @@ let expressCommands = {
         let ip = hasher(getIp(req));
         let hwid = hasher(req.headers['syn-fingerprint']);
         let check = objects.toString().trim().split('')
-        let pass = (parseInt(check[1]) % 2) ? true : false
+        let pass = (parseInt(check[1]) % 2 == 0) ? true : false
 
         sql.query('SELECT * FROM tbxkeys WHERE wkey = ?', [wkey], function (err, data) {
             if (err) return res.send({ Whitelisted: false, object: true });
