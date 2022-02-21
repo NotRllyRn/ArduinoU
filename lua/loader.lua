@@ -36,7 +36,7 @@ local mainScript = function()
 	if (val0 == false) or (val3 == false) or (val2 == true) then
 		error('Detected.',1)
 	end
-	console.log("nice! you got into the script")
+	print("nice! you got into the script")
 end
 local request = (syn and syn.request)
 if request and key and tostring(key) then
