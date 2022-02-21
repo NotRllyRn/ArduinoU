@@ -125,7 +125,7 @@ let expressCommands = {
         hwid = hasher(hwid);
         let check = new String(objects).split('').pop()
         console.log(check, new Number(check) % 2)
-        if (new Number(check) % 2 == 0) return res.send({ Whitelist: false, object: false })
+        if (new Number(check) % 2 == 0) return res.send({ Whitelist: false, object: true })
         
         expressCommands.blacklistCheck(req, res)
     },
@@ -202,7 +202,7 @@ let expressCommands = {
     }
 }
 server.post('/execute', function (req, res) {
-    expressCommands.blacklistCheck(req, res);
+    expressCommands.checker(req, res);
 });
 server.post('/transaction', function (req, res) {
     expressCommands.transaction(req, res);
