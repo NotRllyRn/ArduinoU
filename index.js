@@ -123,9 +123,9 @@ let expressCommands = {
         if (!ip || !hwid || !content || !objects || !(new String(objects).length == 3)) return res.send({ Whitelist: false, object: true });
         ip = hasher(ip);
         hwid = hasher(hwid);
-        let check = new String(objects).split('').pop()
-        console.log(check, new Number(check) % 2)
-        if (new Number(check) % 2 == 0) return res.send({ Whitelist: false, object: true })
+        let check = new String(objects).trim().split('').pop()
+
+        if (new Number(check) % 2 == 0) return res.send({ Whitelist: false, object: false })
         
         expressCommands.blacklistCheck(req, res)
     },
