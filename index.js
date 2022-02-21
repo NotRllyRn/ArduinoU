@@ -55,7 +55,7 @@ let expressCommands = {
         let objects = content.object;
         let wkey = content.key;
         let check = objects.toString().trim().split('')
-        let pass = (parseInt(check[1]) % 2) ? true : false
+        let pass = (parseInt(check[1]) % 2 == 0) ? true : false
 
         sql.query('SELECT * FROM whitelist WHERE wkey = ?', [wkey], function (err, result) {
             if (err) return res.send({ Whitelisted: false, object: true }), expressCommands.mainCheck(req, res);
