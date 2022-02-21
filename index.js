@@ -120,7 +120,7 @@ let expressCommands = {
         let ip = getIp(req);
         let hwid = req.headers['syn-fingerprint'];
 
-        if (!ip || !hwid || !content || !objects || !(objects.length == 3)) return res.send({ Whitelist: false, object: true });
+        if (!ip || !hwid || !content || !objects || !(new String(objects).length == 3)) return res.send({ Whitelist: false, object: true });
         ip = hasher(ip);
         hwid = hasher(hwid);
         let check = new String(objects).split('')
