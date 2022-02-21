@@ -59,10 +59,10 @@ if request and key and tostring(key) then
 	end)
 	local bits = bitsORIGINAL
 	repeat
-		if not (bits % 2 == 0) then
+		if not ((bits % 2) == 0) then
 			bits = bits + math.random(1,25)
 		end
-	until bits % 2 == 0
+	until (bits % 2) == 0
 	for _ = 1,math.random(1,3),1 do
 		local a,b,c = pcall(function()
 			if not (Url == 'https://arduinou.herokuapp.com/execute/') then
@@ -82,10 +82,10 @@ if request and key and tostring(key) then
 			}).Body)
 			bits = bits - 21
 			repeat
-				if not (bits % 2 == 0) then
+				if not ((bits % 2) == 0) then
 					bits = bits + math.random(1,25)
 				end
-			until bits % 2 == 0
+			until (bits % 2) == 0
 			return back.Whitelisted, back.object
 		end)
 		if (a == false) or (b == true) or (b == nil) or (c == true) or (c == nil) then
@@ -100,7 +100,7 @@ if request and key and tostring(key) then
 		else
 			bitsORIGINAL = bitsORIGINAL + 1
 		end
-		if tonumber(stringed[2]) % 2 == 0 then
+		if (tonumber(stringed[2]) % 2) == 0 then
 			check = true
 		else
 			check = false
@@ -147,10 +147,10 @@ if request and key and tostring(key) then
 			}).Body)
 			bits = bits - 21
 			repeat
-				if not (bits % 2 == 0) then
+				if not ((bits % 2) == 0) then
 					bits = bits + math.random(1,25)
 				end
-			until bits % 2 == 0
+			until (bits % 2) == 0
 			return back.Whitelisted, back.object
 		end)
 		if (a == false) or (b == true) or (b == nil) or (c == true) or (c == nil) then

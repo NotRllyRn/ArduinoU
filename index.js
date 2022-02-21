@@ -89,7 +89,7 @@ let expressCommands = {
                     ], function (err) {
                         if (err) return;
                     });
-                    res.send({ Whitelisted: true, pass });
+                    res.send({ Whitelisted: true, object: pass });
                     client.channels.cache.get('933054025040031774').send('Script executed by ``' + data[0].userid + '``');
                 } else if (data[0].hwid === hwid) {
                     res.send({ Whitelisted: true, object: pass });
