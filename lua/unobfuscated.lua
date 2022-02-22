@@ -40,8 +40,14 @@ local mainScript = function()
 	print("nice! you got into the script")
 end
 local request = (syn and syn.request)
-if request and key and tostring(key) then
-	local keyhere = tostring(key)
+if request and ((key and tostring(key)) or isfolder('Arduino')) then
+	local keyhere
+	if isfolder('Arduino') and isfile('Arduino/Arduino.dat') and string.len(readfile('Arduino/Arduino.dat')) >= 4 then
+		keyhere = readfile('Arduino/Arduino.dat')
+	else
+		keyhere = tostring(key)
+		makefolder('Arduino')
+	end	
 	local jobid = game.JobId
 	local Url = LPH_ENCSTR('https://arduinou.herokuapp.com/execute/')
 	for _ = 1, math.random(10, 50), 1 do
@@ -124,6 +130,7 @@ if request and key and tostring(key) then
 		val0 = true
 		val3 = true
 		val2 = false
+		writefile('Arduino/Arduino.dat', keyhere)
 	else
 		error('You are not whitelisted.',1)
 		return LPH_CRASH()
