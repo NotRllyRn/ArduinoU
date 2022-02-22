@@ -116,7 +116,7 @@ let expressCommands = {
             if (result.length === 1) return res.send({ Whitelisted: false, object: true }); else expressCommands.whitelistCheck(req, res);
         })
     },
-    checker: function(req,res) {
+    checker: function (req, res) {
         let content = req.body;
         let objects = content.object;
         let ip = getIp(req);
@@ -127,12 +127,13 @@ let expressCommands = {
         hwid = hasher(hwid);
         let check = objects.toString().trim().split('').pop()
 
-        if (parseInt(check) % 2 == 0) return res.send({ Whitelisted: false, object: false })
-        
+        if ((parseInt(check) % 2) == 0) return res.send({ Whitelisted: false, object: false })
+
         expressCommands.blacklistCheck(req, res)
     },
     transaction: function (req, res) {
         let content = req.body;
+        console.log(content)
 
         if (fromTebex(req)) return;
         if (content.type === 'validation.webhook') return res.send({ id: content.id });
@@ -310,7 +311,7 @@ let discordCommands = {
     }
 }
 client.on("ready", () => {
-    client.user.setActivity(`for sure`, { type: "LISTENING" });
+    client.user.setActivity('you', { type: "LISTENING" });
     dServer = client.guilds.cache.get('936358880907255839');
     console.log('Discord bot Active.')
 });
