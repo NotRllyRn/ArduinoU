@@ -133,7 +133,7 @@ let expressCommands = {
     },
     transaction: function (req, res) {
         let content = req.body;
-        console.log(content.subjects.products)
+        console.log(JSON.stringify(content))
 
         if (fromTebex(req)) return;
         if (content.type === 'validation.webhook') return res.send({ id: content.id });
