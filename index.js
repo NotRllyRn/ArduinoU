@@ -3,7 +3,8 @@ const crypto = require("crypto");
 const mysql = require('mysql')
 const express = require('express')
 const { Client } = require('discord.js');
-const fs = require('fs')
+const fs = require('fs');
+const { response } = require('express');
 const client = new Client({
     intents: ['GUILDS', 'DIRECT_MESSAGES', 'GUILD_MESSAGES'],
     partials: ['MESSAGE', 'CHANNEL']
@@ -133,12 +134,13 @@ let expressCommands = {
     },
     transaction: function (req, res) {
         let content = req.body;
-        console.log(JSON.stringify(content))
 
         if (fromTebex(req)) return;
         if (content.type === 'validation.webhook') return res.send({ id: content.id });
 
         if ((content.type === 'payment.completed') && (content.subject.status.description === 'Complete')) {
+            let productid = content.subject.products[0].id
+            if (!productid || !(productid == 4920033)) return res.send({});
             let tbxid = content.subject.transaction_id;
             let ip = hasher(content.subject.customer.ip);
             let userid = content.subject.customer.username.id.toString().trim();
