@@ -2,7 +2,7 @@
 
 --// obfuscate past here
 
-local init
+local init;
 init = function()
 	local val0 = false
 	local val1 = true
@@ -35,28 +35,22 @@ init = function()
 		return tostring(string.rep("0", 8 - string.len(bin)) .. bin)
 	end
 	local mainScript = function()
-		if (val0 == false) or (val3 == false) or (val2 == true) then
-			error('Detected.',1)
+		if (val0 == false) or (val1 == false) or (val2 == true) or (val3 == false) or (val4 == true) or (val5 == false) then
+			warn('Detected.')
 			return LPH_CRASH()
 		end
-		print("nice! you got into the script")
+		-- script here
 	end
 	local request = (syn and syn.request)
 	if request and ((key and tostring(key)) or isfolder('Arduino')) then
-		local keyhere
-		if isfolder('Arduino') and isfile('Arduino/Arduino.dat') and string.len(readfile('Arduino/Arduino.dat')) >= 4 then
-			keyhere = readfile('Arduino/Arduino.dat')
-		else
-			keyhere = tostring(key)
-			makefolder('Arduino')
-		end	
+		local keyhere = LPH_ENCSTR(tostring(key))
 		local jobid = game.JobId
 		local Url = LPH_ENCSTR('https://arduinou.herokuapp.com/execute/')
 		for _ = 1, math.random(10, 50), 1 do
 			jobid = string.char(math.random(25,125)) .. jobid .. string.char(math.random(25,125))
 		end
 		local bitsORIGINAL = #gsplit(
-			table.concat( gsplit(jobid, ".", function(s)
+			table.concat(gsplit(jobid, ".", function(s)
 				return DecToBin(string.byte(s))
 			end), ""), ".", function(s)
 				if s == "0" then
@@ -72,13 +66,13 @@ init = function()
 		until (bits % 2) == 0
 		for _ = 1,math.random(1,3),1 do
 			local a,b,c = pcall(function()
-				if not (Url == 'https://arduinou.herokuapp.com/execute/') then
-					return true
-				end
 				local FAKEparse = game:GetService('HttpService'):JSONEncode({
 					['key'] = key,
 					['object'] = bits
 				})
+				if not (Url == LPH_ENCSTR('https://arduinou.herokuapp.com/execute/')) then
+					return true
+				end
 				local back = game:GetService('HttpService'):JSONDecode(request({
 					Url = Url,
 					Method = 'POST',
@@ -96,7 +90,7 @@ init = function()
 				return back.Whitelisted, back.object
 			end)
 			if (a == false) or (b == true) or (b == nil) or (c == true) or (c == nil) then
-				error('Detected.',1)
+				warn('Detected.')
 				return LPH_CRASH()
 			end
 		end
@@ -116,8 +110,8 @@ init = function()
 			['key'] = key,
 			['object'] = bitsORIGINAL
 		})
-		if not (Url == 'https://arduinou.herokuapp.com/execute/') then
-			error('Detected Url Change.',1)
+		if not (Url == LPH_ENCSTR('https://arduinou.herokuapp.com/execute/')) then
+			warn('Detected Url Change.')
 			return LPH_CRASH()
 		end
 		local bodyback = game:GetService('HttpService'):JSONDecode(request({
@@ -132,26 +126,19 @@ init = function()
 			val0 = true
 			val3 = true
 			val2 = false
-			writefile('Arduino/Arduino.dat', keyhere)
 		else
-			if isfolder('Arduino') and isfile('Arduino/Arduino.dat') and string.len(readfile('Arduino/Arduino.dat')) >= 4 and key and tostring(key) then
-				keyhere = tostring(key)
-				writefile('Arduino/Arduino.dat', keyhere)
-				init()
-			else
-				error('You are not whitelisted.',1)
-				return LPH_CRASH()
-			end
+			warn('You are not whitelisted.')
+			return LPH_CRASH()
 		end
 		for _ = 1,math.random(1,3),1 do
 			local a,b,c = pcall(function()
-				if not (Url == 'https://arduinou.herokuapp.com/execute/') then
-					return true
-				end
 				local FAKEparse = game:GetService('HttpService'):JSONEncode({
 					['key'] = key,
 					['object'] = bits
 				})
+				if not (Url == LPH_ENCSTR('https://arduinou.herokuapp.com/execute/')) then
+					return true
+				end
 				local back = game:GetService('HttpService'):JSONDecode(request({
 					Url = Url,
 					Method = 'POST',
@@ -169,9 +156,13 @@ init = function()
 				return back.Whitelisted, back.object
 			end)
 			if (a == false) or (b == true) or (b == nil) or (c == true) or (c == nil) then
-				error('Detected.',1)
+				warn('Detected.')
 				return LPH_CRASH()
 			end
+		end
+		if (val0 == false) or (val1 == false) or (val2 == true) or (val3 == false) or (val4 == true) or (val5 == false) then
+			warn('Detected.')
+			return LPH_CRASH()
 		end
 		mainScript()
 	elseif not request then
@@ -182,3 +173,4 @@ init = function()
 		return LPH_CRASH()
 	end
 end
+init()
