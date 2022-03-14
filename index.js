@@ -245,20 +245,9 @@ let discordCommands = {
                 }, 5000);
             });
         }
-        const userid = msg.author.id.toString().trim();
-
-        sql.query('SELECT * FROM tbxkeys WHERE userid = ?', [userid], function (err, data) {
-            if (err) return msg.reply('Bot errored.');
-            if (data.length === 0) {
-                msg.reply('You are not whitelisted.');
-            } else if (data[0].whitelist.toString() === '1') {
-                msg.author.send(executeScript).catch(() => {
-                    client.channels.cache.get('936361136947859516').send('<@' + msg.author.id.toString().trim() + '> Enable your dms and use ``;getscript``.');
-                });
-            } else {
-                msg.reply('You are not whitelisted.');
-            }
-        })
+        msg.author.send(executeScript).catch(() => {
+            client.channels.cache.get('936361136947859516').send('<@' + msg.author.id.toString().trim() + '> Enable your dms and use ``;getscript``.');
+        });
     },
     getkey: function (msg) {
         if (!botChannels[msg.channel.id.toString()] && !(msg.channel.type == 'DM')) {
@@ -303,6 +292,18 @@ let discordCommands = {
                 }
             })
         }
+    },
+    buy: function(msg) {
+        if (!botChannels[msg.channel.id.toString()]) {
+            msg.delete();
+            return msg.channel.send('<@' + msg.author.id + '> Please use bot commands in bot channels.').then(message => {
+                setTimeout(function () {
+                    message.delete();
+                }, 5000);
+            })
+        }
+
+        msg.channel.send('https://arduino.tebex.io/')
     },
     ping: function (msg) {
         msg.reply('no');
