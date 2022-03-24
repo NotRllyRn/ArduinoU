@@ -57,22 +57,99 @@ local saveSettings = function(settings)
 	end
 end
 
-local games_scripts = {
+local games_scripts
+games_scripts = {
 	["5993942214"] = {
+		name = 'Rush Point',
+		Detected = false,
 		check = function()
 			return (workspace:Has('MapFolder') and workspace.MapFolder:Has('Players') and localPlayer:Has('PermanentTeam'))
 		end,
 		main = function(window, settings)
-			local PlayersFolder = workspace.MapFolder.Players
+			local MapFolder = workspace.MapFolder
+			local PlayersFolder = MapFolder.Players
 			local local_table = {
 				inGame = false,
 				team = localPlayer.PermanentTeam.Value,
+				character = nil
 			}
+
+			local gameTable_Checks = {
+				Recoil = {
+					'RecoilIndex',
+					'TotalSpread',
+					'TotalSpreadX',
+					'TotalSpreadY',
+				},
+				Camera = {
+					'TotalCameraX',
+					'TotalCameraY',
+					'CurrentCameraX',
+					'CurrentCameraY',
+					'TotalCameraBounceX',
+					'TotalCameraBounceY',
+					'CurrentCameraBounceX',
+					'CurrentCameraBounceY',
+					'LastCameraSpringBounceX',
+					'LastCameraSpringBounceY',
+					'LastCameraSpringBounceZ',
+					'LastAimPunchSpringX',
+					'LastAimPunchSpringY',
+					'LastAimPunchSpringZ',
+					'LastCameraShakeTick',
+				},
+				Network = {
+					'CachedFunctions'
+				},
+				Weapons = {
+					'Salvo',
+					'Crimson'
+				}
+			}
+
+			local gameTables = {}
+			for _, v in ipairs(getgc(true)) do
+				if v and type(v) == 'table' then
+					for name, ta in pairs(gameTable_Checks) do
+						local s, r = pcall(function()
+							local returnee = true
+							for _, value in ipairs(ta) do
+								if not v[value] then
+									returnee = false
+									break
+								end
+							end
+							return returnee
+						end)
+						if s and r then
+							gameTables[name] = {
+								Raw = v,
+								Copy = {table.unpack(v)}
+							}
+						end
+					end
+				end
+			end
+
+			wait(0.5)
 
 			local checkGame = function()
 				local found = false
 				for _, plr in ipairs(PlayersFolder:GetChildren()) do
 					if plr.Name == localPlayer.Name then
+						if not local_table.inGame then
+							for i,v in pairs(getgc(true)) do
+								if v and type(v) == 'table' then
+									local s,e = pcall(function()
+										return (v.Remove and v.Visible and v.Color and v.Transparency and v.ZIndex)
+									end)
+									if s and e then
+										v.Visible = false
+									end
+								end
+							end
+						end
+						local_table.character = plr
 						found = true
 						break
 					end
@@ -106,6 +183,15 @@ local games_scripts = {
 					visible = false,
 					aim_setting = 'closest to player',
 				},
+				CAMERA_SETTINGS = {
+					no_recoil = true,
+					no_shake = true,
+					no_spread = true,
+				},
+				MISC_SETTINGS = {
+					firerateOveride = false,
+					firerate = 0.1,
+				}
 			}
 			compare_save(Settings, settings.GAMES["5993942214"].SETTINGS)
 			settings.GAMES["5993942214"].SETTINGS = Settings
@@ -210,10 +296,10 @@ local games_scripts = {
 							line.Visible = false
 							box.Visible = false
 						end
-					elseif game_table[plr.Name] then
-						game_table[plr.Name].inGame = false
-						game_table[plr.Name].line.Visible = false
-						game_table[plr.Name].box.Visible = false
+					elseif game_table[plr_Char.Name] then
+						game_table[plr_Char.Name].inGame = false
+						game_table[plr_Char.Name].line.Visible = false
+						game_table[plr_Char.Name].box.Visible = false
 					end
 				end
 			end
@@ -227,11 +313,12 @@ local games_scripts = {
 				local aimAT;
 
 				for _, stuff in pairs(game_table) do
-					if not (local_table.team == stuff.team) and (stuff.inGame) then
-						local target = stuff.targets[Settings.AIMBOT_SETTINGS.aim]
+					local target = stuff.targets[Settings.AIMBOT_SETTINGS.aim]
+					if not (local_table.team == stuff.team) and (stuff.inGame) and target then
 
-						local point, on = getPoint(target)
-						if point and ((Settings.AIMBOT_SETTINGS.visible and on) or (not Settings.AIMBOT_SETTINGS.visible)) then
+						local point = getPoint(target)
+
+						if point then
 							local dis = (Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2) - point).Magnitude
 							if Settings.AIMBOT_SETTINGS.aim_setting == 'closest to player' and local_table.inGame then
 								local dis = (target.Position - humanoidRP.Position).Magnitude
@@ -252,27 +339,101 @@ local games_scripts = {
 						end
 					end
 
-					tweenService:Create(camera, TweenInfo.new(Settings.AIMBOT_SETTINGS.smooth / 100), {
-						CFrame = CFrame.new(camera.CFrame.Position, aimAT.Position),
-					}):Play()
+					local target = aimAT
+					local character = local_table.character
+
+					--local check1 = castRay(character.Head.Position, (character.Head.Position - target.Position).Unit, (character.Head.Position - target.Position).Magnitude, character, 'BlackList')
+					--local on = castRay(character.Head.Position, (character.Head.Position - target.Position).Unit, (character.Head.Position - target.Position).Magnitude * 1.1, {character, workspace.CurrentCamera, workspace.RaycastIgnore, workspace.DroppedWeapons, MapFolder.Map.Ramps, MapFolder.Map.Walls}, 'Blacklist')
+					local on
+					--print(on and on.Instance.Parent.Parent, target.Parent)
+
+					if local_table.inGame and ((Settings.AIMBOT_SETTINGS.visible and on and on.Instance:IsDescendantOf(target.Parent)) or (not Settings.AIMBOT_SETTINGS.visible)) then
+						tweenService:Create(camera, TweenInfo.new(Settings.AIMBOT_SETTINGS.smooth / 100), {
+							CFrame = CFrame.new(camera.CFrame.Position, aimAT.Position),
+						}):Play()
+					end
 				end
 			end
 
-			cWrap(function()
-				renderS:Connect(function()
-					cWrap(function()
-						esp_run()
-					end)
-					cWrap(function()
-						aimbot_run()
-					end)
-				end)
-			end)
+			function noRecoil()
+				local addRecoil = gameTables.Recoil.Raw.AddRecoil
+				function gameTables.Recoil.Raw.AddRecoil(...)
+					if Settings.CAMERA_SETTINGS.no_recoil then
+						return nil
+					end
+					return addRecoil(...)
+				end
+			end
+			function noShake()
+				local AddCameraShake = gameTables.Camera.Raw.AddCameraShake
+				function gameTables.Camera.Raw.AddCameraShake(...)
+					if Settings.CAMERA_SETTINGS.no_shake then
+						return nil
+					end
+					return AddCameraShake(...)
+				end
+				local AddCameraBounce = gameTables.Camera.Raw.AddCameraBounce
+				function gameTables.Camera.Raw.AddCameraBounce(...)
+					if Settings.CAMERA_SETTINGS.no_shake then
+						return nil
+					end
+					return AddCameraBounce(...)
+				end
+				local Damaged = gameTables.Network.Raw.CachedFunctions.Damaged
+				function gameTables.Network.Raw.CachedFunctions.Damaged(...)
+					if Settings.CAMERA_SETTINGS.no_shake then
+						return nil
+					end
+					return Damaged(...)
+				end
+				local Fall = gameTables.Network.Raw.CachedFunctions['Fall Damage']
+				gameTables.Network.Raw.CachedFunctions['Fall Damage'] = function(...)
+					if Settings.CAMERA_SETTINGS.no_shake then
+						return nil
+					end
+					return Fall(...)
+				end
+			end
+			function noSpread()
+				if Settings.CAMERA_SETTINGS.no_spread then
+					for i, v in pairs(gameTables.Weapon.Raw) do
+						for _, index in ipairs({
+							'Spread',
+							'MovementSpreadPenalty',
+							'FirstShotSpread',
+							'MovementSpreadTime',
+						}) do
+							if v[index] then
+								v[index] = 0
+							end
+						end
+					end
+				else
+					gameTables.Weapon.Raw = {table.unpack(gameTables.Weapon.Copy)}
+				end
+			end
+			function updateFireRate()
+				if Settings.MISC_SETTINGS.firerateOveride then
+					for i, v in pairs(gameTables.Weapon.Raw) do
+						if v and v.FireRate then
+							v.FireRate = Settings.MISC_SETTINGS.firerate
+						end
+					end
+				else
+					gameTables.Weapon.Raw = {table.unpack(gameTables.Weapon.Copy)}
+				end
+			end
 
-			local page = window:addPage(settings.GAMES["5993942214"].NAME, 5012544693) do
+			local page = window:addPage(games_scripts["5993942214"].name, 5012544693) do
 				local ESP = page:addSection('ESP') do
 					local tog = ESP:addToggle('Esp toggle', Settings.ESP_SETTINGS.on, function(v)
 						Settings.ESP_SETTINGS.on = v
+					end)
+					ESP:addKeybind('Esp toggle keybind', Enum.KeyCode[Settings.ESP_SETTINGS.keybind], function()
+						Settings.ESP_SETTINGS.on = not Settings.ESP_SETTINGS.on
+						ESP:updateToggle(tog, 'Esp toggle', Settings.ESP_SETTINGS.on)
+					end, function(key)
+						Settings.ESP_SETTINGS.keybind = tostring(key.KeyCode):split(".")[3]
 					end)
 					ESP:addToggle('Esp Overide', Settings.ESP_SETTINGS.overide, function(v)
 						Settings.ESP_SETTINGS.overide = v
@@ -283,17 +444,11 @@ local games_scripts = {
 					ESP:addToggle('Boxes', Settings.ESP_SETTINGS.box, function(v)
 						Settings.ESP_SETTINGS.box = v
 					end)
-					ESP:addDropdown('Aim at', {'head', 'humanoid'}, function(v)
-						Settings.ESP_SETTINGS.aim = v
-					end)
+					--ESP:addDropdown('Aim at', {'head', 'humanoid'}, function(v)
+						--Settings.ESP_SETTINGS.aim = v
+					--end)
 					cWrap(function()
 						wait(1)
-						ESP:addKeybind('Esp toggle keybind', Enum.KeyCode[Settings.ESP_SETTINGS.keybind], function()
-							Settings.ESP_SETTINGS.on = not Settings.ESP_SETTINGS.on
-							ESP:updateToggle(tog, 'Esp toggle', Settings.ESP_SETTINGS.on)
-						end, function(key)
-							Settings.ESP_SETTINGS.keybind = tostring(key.KeyCode):split(".")[3]
-						end)
 						ESP:Resize()
 					end)
 				end
@@ -324,12 +479,13 @@ local games_scripts = {
 					AIMBOT:addToggle('Player has to be Visible', Settings.AIMBOT_SETTINGS.visible, function(v)
 						Settings.AIMBOT_SETTINGS.visible = v
 					end)
-					AIMBOT:addDropdown('Aim at', {'head', 'humanoid'}, function(v)
-						Settings.AIMBOT_SETTINGS.aim = v
-					end)
-					AIMBOT:addDropdown('Aim method', {'closest to player', 'closest to mouse'}, function(v)
-						Settings.AIMBOT_SETTINGS.aim_setting = v
-					end)
+					--AIMBOT:addDropdown('Aim at', {'head', 'humanoid'}, function(v)
+						--Settings.AIMBOT_SETTINGS.aim = v
+					--end)
+					--AIMBOT:addDropdown('Aim method', {'closest to player', 'closest to mouse'}, function(v)
+						--Settings.AIMBOT_SETTINGS.aim_setting = v
+						--print(Settings.AIMBOT_SETTINGS.aim_setting)
+					--end)
 					AIMBOT:addSlider('Smoothness', Settings.AIMBOT_SETTINGS.smooth, 1, 100, function(v)
 						Settings.AIMBOT_SETTINGS.smooth = v
 					end)
@@ -337,19 +493,46 @@ local games_scripts = {
 						Settings.AIMBOT_SETTINGS.distance = v
 					end)
 				end
+				local OTHER = page:addSection('CAMERA') do
+					OTHER:addToggle('No recoil', Settings.CAMERA_SETTINGS.no_recoil, function(v)
+						Settings.CAMERA_SETTINGS.no_recoil = v
+					end)
+					OTHER:addToggle('No shake', Settings.CAMERA_SETTINGS.no_shake, function(v)
+						Settings.CAMERA_SETTINGS.no_shake = v
+					end)
+				end
+
 				window:SelectPage(window.pages[1], true)
 			end
+			
+			renderS:Connect(function()
+				cWrap(function()
+					esp_run()
+				end)
+				cWrap(function()
+					aimbot_run()
+				end)
+			end)
+			noRecoil()
+			noShake()
+			noSpread()
+			updateFireRate()
 
-			for i,v in pairs(getgc(true)) do
-				if v and type(v) == 'table' then
-					local s,e = pcall(function()
-						return (v.Remove and v.Visible and v.Color and v.Transparency and v.ZIndex)
-					end)
-					if s and e then
-						v.Visible = false
+			cWrap(function()
+				while true do
+					wait(10)
+					for _, thing in ipairs(getgc(true)) do
+						if thing and type(thing) == 'table' then
+							local s,e = pcall(function()
+								return thing.Transparency and thing.ZIndex and thing.Color and thing.Remove and thing.Visible and thing.__OBJECT and not (thing.__OBJECT_EXIST == nil) and getrawmetatable(thing).__type
+							end)
+							if s and e then
+								e.Visible = false
+							end
+						end
 					end
 				end
-			end
+			end)
 		end,
 	},
 }
@@ -439,12 +622,12 @@ end
 
 local Arduino = load_ui(Settings) do
 	for _, ta in pairs(games_scripts) do
-		if ta.check() then
+		if ta.check() and (not ta.Detected) then
 			cWrap(function()
 				ta.main(Arduino, Settings)
+				finalize_ui(Arduino, Settings)
 			end)
 			break
 		end
 	end
-	finalize_ui(Arduino, Settings)
 end
