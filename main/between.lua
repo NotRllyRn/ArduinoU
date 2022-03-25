@@ -440,6 +440,7 @@ init = function()
                                     'MovementSpreadPenalty',
                                     'FirstShotSpread',
                                     'MovementSpreadTime',
+                                    'ScopeSpread',
                                 }) do
                                     if v[index] then
                                         v[index] = 0
@@ -558,10 +559,20 @@ init = function()
                     
                     renderS:Connect(function()
                         cWrap(function()
-                            esp_run()
+                            local s,e = pcall(function()
+                                esp_run()
+                            end)
+                            if not s then
+                                print(e)
+                            end
                         end)
                         cWrap(function()
-                            aimbot_run()
+                            local s,e = pcall(function()
+                                aimbot_run()
+                            end)
+                            if not s then
+                                print(e)
+                            end
                         end)
                     end)
                     noRecoil()
