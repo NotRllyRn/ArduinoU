@@ -137,24 +137,12 @@ games_scripts = {
 				end
 			end
 
-			wait(0.5)
+			wait(0.1)
 
 			local checkGame = function()
 				local found = false
 				for _, plr in ipairs(PlayersFolder:GetChildren()) do
 					if plr.Name == localPlayer.Name then
-						if not local_table.inGame then
-							for i,v in pairs(getgc(true)) do
-								if v and type(v) == 'table' then
-									local s,e = pcall(function()
-										return (v.Remove and v.Visible and v.Color and v.Transparency and v.ZIndex)
-									end)
-									if s and e then
-										v.Visible = false
-									end
-								end
-							end
-						end
 						local_table.character = plr
 						found = true
 						break
@@ -206,13 +194,16 @@ games_scripts = {
 			local game_table = {}
 			local esp_run = function()
 				checkGame()
-				for NAME, _ in pairs(game_table) do
+				for NAME, v in pairs(game_table) do
 					if not (players:FindFirstChild(NAME)) then
 						game_table[NAME].line:Remove()
 						game_table[NAME].box:Remove()
 						game_table[NAME] = nil
 					elseif not (PlayersFolder:FindFirstChild(NAME)) then
 						game_table[NAME].inGame = false
+						game_table[NAME].line.Visible = false
+						game_table[NAME].box.Visible = false
+					elseif v.targets.humanoid.Parent.Parent == workspace then
 						game_table[NAME].line.Visible = false
 						game_table[NAME].box.Visible = false
 					end
@@ -536,22 +527,6 @@ games_scripts = {
 			noShake()
 			noSpread()
 			updateFireRate()
-
-			cWrap(function()
-				while true do
-					wait(10)
-					for _, thing in ipairs(getgc(true)) do
-						if thing and type(thing) == 'table' then
-							local s,e = pcall(function()
-								return thing.Transparency and thing.ZIndex and thing.Color and thing.Remove and thing.Visible and thing.__OBJECT and not (thing.__OBJECT_EXIST == nil) and getrawmetatable(thing).__type
-							end)
-							if s and e then
-								e.Visible = false
-							end
-						end
-					end
-				end
-			end)
 		end,
 	},
 }
