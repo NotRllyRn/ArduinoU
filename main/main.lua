@@ -63,7 +63,7 @@ games_scripts = {
 		name = 'Rush Point',
 		Detected = false,
 		check = function()
-			return (workspace:Has('MapFolder') and workspace.MapFolder:Has('Players') and localPlayer:Has('PermanentTeam'))
+			return (workspace:FindFirstChild('MapFolder') and workspace.MapFolder:FindFirstChild('Players') and localPlayer:FindFirstChild('PermanentTeam'))
 		end,
 		main = function(window, settings)
 			local MapFolder = workspace.MapFolder
@@ -207,11 +207,11 @@ games_scripts = {
 			local esp_run = function()
 				checkGame()
 				for NAME, _ in pairs(game_table) do
-					if not (players:Has(NAME)) then
+					if not (players:FindFirstChild(NAME)) then
 						game_table[NAME].line:Remove()
 						game_table[NAME].box:Remove()
 						game_table[NAME] = nil
-					elseif not (PlayersFolder:Has(NAME)) then
+					elseif not (PlayersFolder:FindFirstChild(NAME)) then
 						game_table[NAME].inGame = false
 						game_table[NAME].line.Visible = false
 						game_table[NAME].box.Visible = false
@@ -219,12 +219,12 @@ games_scripts = {
 				end
 				for _, plr in ipairs(PlayersFolder:GetChildren()) do
 					local plr_Char = plr
-					local plr = players:Has(plr.Name)
+					local plr = players:FindFirstChild(plr.Name)
 					if
 						plr
 						and plr_Char
-						and plr_Char:Has("HumanoidRootPart")
-						and plr_Char:Has("Head")
+						and plr_Char:FindFirstChild("HumanoidRootPart")
+						and plr_Char:FindFirstChild("Head")
 						and not (plr.Name == localPlayer.Name)
 					then
 						if not game_table[plr.Name] then
