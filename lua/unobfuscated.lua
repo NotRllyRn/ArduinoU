@@ -43,7 +43,7 @@ init = function()
 	end
 	local request = (syn and syn.request)
 	if request and ((key and tostring(key)) or isfolder('Arduino')) then
-		local keyhere = LPH_ENCSTR(tostring(key))
+		local keyhere = tostring(key)
 		local jobid = game.JobId
 		local Url = LPH_ENCSTR('https://arduinou.herokuapp.com/execute/')
 		for _ = 1, math.random(10, 50), 1 do
