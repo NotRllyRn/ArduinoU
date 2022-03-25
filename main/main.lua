@@ -67,6 +67,7 @@ games_scripts = {
 		end,
 		main = function(window, settings)
 			local MapFolder = workspace.MapFolder
+			local GameFolder = MapFolder.GameStats
 			local PlayersFolder = MapFolder.Players
 			local local_table = {
 				inGame = false,
@@ -75,52 +76,57 @@ games_scripts = {
 			}
 
 			local gameTable_Checks = {
-				Recoil = {
-					'RecoilIndex',
-					'TotalSpread',
-					'TotalSpreadX',
-					'TotalSpreadY',
-				},
-				Camera = {
-					'TotalCameraX',
-					'TotalCameraY',
-					'CurrentCameraX',
-					'CurrentCameraY',
-					'TotalCameraBounceX',
-					'TotalCameraBounceY',
-					'CurrentCameraBounceX',
-					'CurrentCameraBounceY',
-					'LastCameraSpringBounceX',
-					'LastCameraSpringBounceY',
-					'LastCameraSpringBounceZ',
-					'LastAimPunchSpringX',
-					'LastAimPunchSpringY',
-					'LastAimPunchSpringZ',
-					'LastCameraShakeTick',
-				},
-				Network = {
-					'CachedFunctions'
-				},
-				Weapons = {
-					'Salvo',
-					'Crimson'
-				}
+				Recoil = function(v)
+					return pcall(function()
+						return v.RecoilIndex and v.TotalSpread and v.TotalSpreadX and v.TotalSpreadY
+					end)
+				end,
+				Camera = function(v)
+					local s = true
+					for _, d in ipairs({
+						'TotalCameraX',
+						'TotalCameraY',
+						'CurrentCameraX',
+						'CurrentCameraY',
+						'TotalCameraBounceX',
+						'TotalCameraBounceY',
+						'CurrentCameraBounceX',
+						'CurrentCameraBounceY',
+						'LastCameraSpringBounceX',
+						'LastCameraSpringBounceY',
+						'LastCameraSpringBounceZ',
+						'LastAimPunchSpringX',
+						'LastAimPunchSpringY',
+						'LastAimPunchSpringZ',
+						'LastCameraShakeTick',
+					}) do
+						local b,r = pcall(function()
+							return( not (v[d] == nil))
+						end)
+						if not b or not r then
+							s = false
+							break
+						end
+					end
+					return table.unpack({true, s})
+				end,
+				Network = function(v)
+					return pcall(function()
+						return v.CachedFunctions
+					end)
+				end,
+				Weapon = function(v)
+					return pcall(function()
+						return v.Salvo and v.Salvo.FireRate and v.Crimson and v.Crimson.FireRate
+					end)
+				end
 			}
 
 			local gameTables = {}
 			for _, v in ipairs(getgc(true)) do
 				if v and type(v) == 'table' then
-					for name, ta in pairs(gameTable_Checks) do
-						local s, r = pcall(function()
-							local returnee = true
-							for _, value in ipairs(ta) do
-								if not v[value] then
-									returnee = false
-									break
-								end
-							end
-							return returnee
-						end)
+					for name, check in pairs(gameTable_Checks) do
+						local s, r = check(v)
 						if s and r then
 							gameTables[name] = {
 								Raw = v,
@@ -247,7 +253,7 @@ games_scripts = {
 						local target = game_table[plr.Name].targets[Settings.ESP_SETTINGS.aim]
 						local torso = game_table[plr.Name].targets.humanoid
 
-						if game_table[plr.Name].team == local_table.team then
+						if (not (GameFolder.GameMode.Value == 'Deathmatch')) and game_table[plr.Name].team == local_table.team then
 							line.Color = Color3.new(table.unpack(Settings.ESP_SETTINGS.colors.sameTeam))
 							box.Color = Color3.new(table.unpack(Settings.ESP_SETTINGS.colors.sameTeam))
 						else
@@ -314,7 +320,7 @@ games_scripts = {
 
 				for _, stuff in pairs(game_table) do
 					local target = stuff.targets[Settings.AIMBOT_SETTINGS.aim]
-					if not (local_table.team == stuff.team) and (stuff.inGame) and target then
+					if ((not (GameFolder.GameMode.Value == 'Deathmatch') and (not (local_table.team == stuff.team))) or (GameFolder.GameMode.Value == 'Deathmatch')) and (stuff.inGame) and target then
 
 						local point = getPoint(target)
 
@@ -476,9 +482,9 @@ games_scripts = {
 					AIMBOT:addToggle('Show aiming at', Settings.AIMBOT_SETTINGS.showaim, function(v)
 						Settings.AIMBOT_SETTINGS.showaim = v
 					end)
-					AIMBOT:addToggle('Player has to be Visible', Settings.AIMBOT_SETTINGS.visible, function(v)
-						Settings.AIMBOT_SETTINGS.visible = v
-					end)
+					--AIMBOT:addToggle('Player has to be Visible', Settings.AIMBOT_SETTINGS.visible, function(v)
+						--Settings.AIMBOT_SETTINGS.visible = v
+					--end)
 					--AIMBOT:addDropdown('Aim at', {'head', 'humanoid'}, function(v)
 						--Settings.AIMBOT_SETTINGS.aim = v
 					--end)
@@ -493,15 +499,28 @@ games_scripts = {
 						Settings.AIMBOT_SETTINGS.distance = v
 					end)
 				end
-				local OTHER = page:addSection('CAMERA') do
-					OTHER:addToggle('No recoil', Settings.CAMERA_SETTINGS.no_recoil, function(v)
+				local CAMERA = page:addSection('CAMERA') do
+					CAMERA:addToggle('No recoil', Settings.CAMERA_SETTINGS.no_recoil, function(v)
 						Settings.CAMERA_SETTINGS.no_recoil = v
 					end)
-					OTHER:addToggle('No shake', Settings.CAMERA_SETTINGS.no_shake, function(v)
+					CAMERA:addToggle('No shake', Settings.CAMERA_SETTINGS.no_shake, function(v)
 						Settings.CAMERA_SETTINGS.no_shake = v
 					end)
+					CAMERA:addToggle('No spread', Settings.CAMERA_SETTINGS.no_spread, function(v)
+						Settings.CAMERA_SETTINGS.no_spread = v
+						noSpread()
+					end)
 				end
-
+				local MISC = page:addSection('OTHER') do
+					MISC:addToggle('Firerate Overide', Settings.MISC_SETTINGS.firerateOveride, function(v)
+						Settings.MISC_SETTINGS.firerateOveride = v
+						updateFireRate()
+					end)
+					MISC:addSlider('Firerate', Settings.MISC_SETTINGS.firerate * 1000, 1, 1000, function(v)
+						Settings.MISC_SETTINGS.firerate = v / 1000
+						updateFireRate()
+					end)
+				end
 				window:SelectPage(window.pages[1], true)
 			end
 			
@@ -599,12 +618,14 @@ local finalize_ui = function(window, settings)
 
 	local ui_s = set:addSection("Miscellaneous")
 	ui_s:addKeybind("Toggle UI", Enum.KeyCode[settings.UI_SETTINGS.OPEN_CLOSE], function()
-		settings.UI_SETTINGS.UI_POS = {
-			0,
-			window.container.Main.Position.X.Offset,
-			0,
-			window.container.Main.Position.Y.Offset,
-		}
+		if window.position then
+			settings.UI_SETTINGS.UI_POS = {
+				0,
+				window.container.Main.Position.X.Offset,
+				0,
+				window.container.Main.Position.Y.Offset,
+			}
+		end
 		window:toggle()
 	end, function(key)
 		settings.UI_SETTINGS.OPEN_CLOSE = tostring(key.KeyCode):split(".")[3]
