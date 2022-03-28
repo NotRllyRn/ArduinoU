@@ -368,7 +368,7 @@ let discordCommands = {
         if (!role) return msg.reply('Role not found.');
 
         if (userid == 'all') {
-                for (const member of dServer.members.cache) {
+                for (const member in dServer.members.cache) {
                     console.log(member.id)
                     await member.roles.add(role).catch(() => {
                         console.log('error')   
