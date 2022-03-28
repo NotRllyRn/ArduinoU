@@ -359,6 +359,14 @@ let discordCommands = {
         checkkey();
     },
     role: async function (msg, args) {
+        if (!botChannels[msg.channel.id.toString()]) {
+            msg.delete();
+            return msg.channel.send('<@' + msg.author.id + '> Please use bot commands in bot channels.').then(message => {
+                setTimeout(function () {
+                    message.delete();
+                }, 5000);
+            })
+        }
         if (!DiscordAllowed[msg.author.id]) return msg.reply('Unauthorized.');
         if (!args || args.length < 2) return msg.reply('You need an userid and roleid');
 
@@ -383,11 +391,32 @@ let discordCommands = {
             });
         }
     },
+    verify: function(msg) {
+        if (msg.channel.id == '936429814464794694') {
+            msg.delete()
+            msg.author.roles.add(dServer.roles.cache.find(r => r.id === '936428694833098774'));
+        } else {
+            msg.channel.send ('Already verified dumbass.')
+        }
+        msg.delete()
+    },
     help: function (msg) {
+        if (!botChannels[msg.channel.id.toString()]) {
+            msg.delete();
+            return msg.channel.send('<@' + msg.author.id + '> Please use bot commands in bot channels.').then(message => {
+                setTimeout(function () {
+                    message.delete();
+                }, 5000);
+            })
+        }
         msg.reply('commands:\n```;getkey\n;getscript\n;buy\n;help\n;getrole```');
     },
     ping: function (msg) {
-        msg.reply('no');
+        return msg.channel.send('no').then(message => {
+            setTimeout(function () {
+                message.delete();
+            }, 5000);
+        })
     }
 }
 client.on("ready", () => {
