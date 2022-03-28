@@ -363,22 +363,23 @@ let discordCommands = {
         if (!args || args.length < 2) return msg.reply('You need an userid and roleid');
 
         const userid = args[0];
-        const roleid = args[1];
+        const role = dServer.roles.cache.find(r => r.id === args[1]);
+
+        if (!role) return msg.reply('Role not found.');
 
         if (userid == 'all') {
                 dServer.members.cache.forEach(member => {
-                    member.roles.add(dServer.roles.cache.find(r => r.id === roleid)).catch(() => {
-                        return msg.reply('Role not found.');
-                    });
+                    console.log(member.id)
+                    member.roles.add(role).catch(() => {
+                        console.log('error')   
+                    })
                 })
-                console.log('Added role to all members.');
+                msg.reply('Added role to all members.');
         } else {
             dServer.members.fetch(userid).then((member) => {
-                member.roles.add(dServer.roles.cache.find(r => r.id === roleid)).then(() => {
+                member.roles.add(role).then(() => {
                     msg.reply('Role added.');
-                }).catch(() => {
-                    msg.reply('Role not found.');
-                });
+                })
             }).catch(() => {
                 msg.reply('User not found.');
             });
