@@ -415,7 +415,7 @@ client.on('messageCreate', (msg) => {
         if (discordCommands[name]) {
             discordCommands[name](...insert);
         }
-    } else if (message.mentions.has(client.user)) {
+    } else if (msg.mentions.has(client.user)) {
         msg.reply('Hi');
     }
 })
