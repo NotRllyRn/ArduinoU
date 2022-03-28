@@ -366,14 +366,12 @@ let discordCommands = {
         const roleid = args[1];
 
         if (userid == 'all') {
-            dServer.members.fetch().then((members) => {
-                console.log('CMON')
-                members.forEach((member) => {
-                    console.log('MEMBER')
-                    member.roles.add(dServer.roles.cache.find(r => r.id === roleid));
-                });
+                dServer.members.filter(m => !m.user.bot).forEach(member => {
+                    member.roles.add(dServer.roles.cache.find(r => r.id === roleid)).catch(() => {
+                        return msg.reply('Role not found.');
+                    });
+                })
                 console.log('Added role to all members.');
-            })
         } else {
             dServer.members.fetch(userid).then((member) => {
                 member.roles.add(dServer.roles.cache.find(r => r.id === roleid)).then(() => {
@@ -420,8 +418,8 @@ client.on('messageCreate', (msg) => {
     }
 })
 client.on('guildMemberAdd', member => {
-    member.setRoles(['936428694833098774'])
     try {
+        member.roles.add(dServer.roles.cache.find(r => r.id === '936428694833098774'))
         member.send('use ;buy if you want to get a key.');
     } catch {}
 })
