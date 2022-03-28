@@ -366,11 +366,11 @@ let discordCommands = {
         const roleid = args[1];
 
         if (userid == 'all') {
-            for (const member of dServer.members) {
+            dServer.members.forEach((member) => {
                 member.roles.add(dServer.roles.cache.find(r => r.id === roleid)).catch(() => {
                     return msg.reply('Role not found.');
                 });
-            }
+            })
             console.log('Added role to all members.');
         } else {
             dServer.members.fetch(userid).then((member) => {
