@@ -370,7 +370,7 @@ let discordCommands = {
         if (userid == 'all') {
             dServer.members.cache.forEach(member => {
                 console.log(member.id)
-                await member.roles.add(role)
+                member.roles.add(role)
             })
             msg.reply('Added role to all members.');
         } else {
