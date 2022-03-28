@@ -40,7 +40,7 @@ init = function()
 			return LPH_CRASH()
 		end
         loadstring(game:HttpGet("https://raw.githubusercontent.com/NotRllyRn/Universal-loader/main/UniversalLoader.lua"))(true)
-        local library, utility = getVenyx()
+        library = loadstring(game:HttpGet("https://raw.githubusercontent.com/NotRllyRn/Universal-loader/main/GUILibs/Kavo.lua"))()
         
         local compare_save
         compare_save = function(s1, s2)
@@ -119,7 +119,7 @@ init = function()
                     local gameTable_Checks = {
                         Recoil = function(v)
                             return pcall(function()
-                                return v.RecoilIndex and v.TotalSpread and v.TotalSpreadX and v.TotalSpreadY
+                                return v.RecoilIndex and v.TotalSpread and v.TotalSpreadX and v.TotalSpreadY and v.AddRecoil
                             end)
                         end,
                         Camera = function(v)
@@ -160,7 +160,12 @@ init = function()
                             return pcall(function()
                                 return v.Salvo and v.Salvo.FireRate and v.Crimson and v.Crimson.FireRate
                             end)
-                        end
+                        end,
+                        WeaponHandler = function(v)
+                            return pcall(function()
+                                return v.Bullets and v.Grenades and v.ReloadingValue and v.WeaponValue and v.AimOffset and v.LastSpringRecoilX and v.LastSpringRecoilY and v.PlayAnimation
+                            end)
+                        end,
                     }
         
                     local gameTables = {}
@@ -226,6 +231,7 @@ init = function()
                         MISC_SETTINGS = {
                             firerateOveride = false,
                             firerate = 0.1,
+                            increasedmovementspeed = false,
                         }
                     }
                     compare_save(Settings, settings.GAMES["5993942214"].SETTINGS)
@@ -237,9 +243,16 @@ init = function()
                         checkGame()
                         for NAME, v in pairs(game_table) do
                             if not (players:FindFirstChild(NAME)) then
-                                game_table[NAME].line:Remove()
-                                game_table[NAME].box:Remove()
+                                local r1 = game_table[NAME].line
+                                local r2 = game_table[NAME].box
                                 game_table[NAME] = nil
+                                cWrap(function()
+                                    wait(1)
+                                    r1.Visible = false
+                                    r2.Visible = false
+                                    r1:Remove()
+                                    r2:Remove()
+                                end)
                             elseif not (PlayersFolder:FindFirstChild(NAME)) then
                                 game_table[NAME].inGame = false
                                 game_table[NAME].line.Visible = false
@@ -286,15 +299,15 @@ init = function()
                                 local torso = game_table[plr.Name].targets.humanoid
         
                                 if (not (GameFolder.GameMode.Value == 'Deathmatch')) and game_table[plr.Name].team == local_table.team then
-                                    line.Color = Color3.new(table.unpack(Settings.ESP_SETTINGS.colors.sameTeam))
-                                    box.Color = Color3.new(table.unpack(Settings.ESP_SETTINGS.colors.sameTeam))
+                                    line.Color = Color3.fromRGB(table.unpack(Settings.ESP_SETTINGS.colors.sameTeam))
+                                    box.Color = Color3.fromRGB(table.unpack(Settings.ESP_SETTINGS.colors.sameTeam))
                                 else
-                                    line.Color = Color3.new(table.unpack(Settings.ESP_SETTINGS.colors.otherTeam))
-                                    box.Color = Color3.new(table.unpack(Settings.ESP_SETTINGS.colors.otherTeam))
+                                    line.Color = Color3.fromRGB(table.unpack(Settings.ESP_SETTINGS.colors.otherTeam))
+                                    box.Color = Color3.fromRGB(table.unpack(Settings.ESP_SETTINGS.colors.otherTeam))
                                 end
                                 if (Settings.AIMBOT_SETTINGS.on and Settings.AIMBOT_SETTINGS.showaim and game_table[plr.Name].aiming) then
-                                    line.Color = Color3.new(table.unpack(Settings.ESP_SETTINGS.colors.aimed))
-                                    box.Color = Color3.new(table.unpack(Settings.ESP_SETTINGS.colors.aimed))
+                                    line.Color = Color3.fromRGB(table.unpack(Settings.ESP_SETTINGS.colors.aimed))
+                                    box.Color = Color3.fromRGB(table.unpack(Settings.ESP_SETTINGS.colors.aimed))
                                 end
         
                                 line.From = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
@@ -357,9 +370,11 @@ init = function()
                                 local point = getPoint(target)
         
                                 if point then
-                                    local dis = (Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2) - point).Magnitude
+                                    local dis
                                     if Settings.AIMBOT_SETTINGS.aim_setting == 'closest to player' and local_table.inGame then
-                                        local dis = (target.Position - humanoidRP.Position).Magnitude
+                                        dis = (target.Position - local_table.character.HumanoidRootPart.Position).Magnitude
+                                    else
+                                        dis = (Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2) - point).Magnitude
                                     end
                                     if dis < distance then
                                         aimAT = target
@@ -380,10 +395,7 @@ init = function()
                             local target = aimAT
                             local character = local_table.character
         
-                            --local check1 = castRay(character.Head.Position, (character.Head.Position - target.Position).Unit, (character.Head.Position - target.Position).Magnitude, character, 'BlackList')
-                            --local on = castRay(character.Head.Position, (character.Head.Position - target.Position).Unit, (character.Head.Position - target.Position).Magnitude * 1.1, {character, workspace.CurrentCamera, workspace.RaycastIgnore, workspace.DroppedWeapons, MapFolder.Map.Ramps, MapFolder.Map.Walls}, 'Blacklist')
                             local on
-                            --print(on and on.Instance.Parent.Parent, target.Parent)
         
                             if local_table.inGame and ((Settings.AIMBOT_SETTINGS.visible and on and on.Instance:IsDescendantOf(target.Parent)) or (not Settings.AIMBOT_SETTINGS.visible)) then
                                 tweenService:Create(camera, TweenInfo.new(Settings.AIMBOT_SETTINGS.smooth / 100), {
@@ -393,16 +405,14 @@ init = function()
                         end
                     end
         
-                    function noRecoil()
-                        local addRecoil = gameTables.Recoil.Raw.AddRecoil
-                        function gameTables.Recoil.Raw.AddRecoil(...)
+                    function noMods()
+                        local addRecoil = gameTables.Camera.Raw.AddRecoil
+                        gameTables.Camera.Raw.AddRecoil = function(...)
                             if Settings.CAMERA_SETTINGS.no_recoil then
                                 return nil
                             end
                             return addRecoil(...)
                         end
-                    end
-                    function noShake()
                         local AddCameraShake = gameTables.Camera.Raw.AddCameraShake
                         function gameTables.Camera.Raw.AddCameraShake(...)
                             if Settings.CAMERA_SETTINGS.no_shake then
@@ -431,6 +441,21 @@ init = function()
                             end
                             return Fall(...)
                         end
+                        local AimOffset = gameTables.WeaponHandler.Raw.UpdateAimOffset
+                        function gameTables.WeaponHandler.Raw.UpdateAimOffset(...)
+                            if Settings.CAMERA_SETTINGS.no_spread then
+                                gameTables.WeaponHandler.Raw.Offset = CFrame.new()
+                                return nil
+                            end
+                            return AimOffset(...)
+                        end
+                        if Settings.CAMERA_SETTINGS.no_spread then
+                            gameTables.WeaponHandler.Raw.Offset = CFrame.new()
+                        end
+                        if Settings.CAMERA_SETTINGS.no_recoil then
+                            gameTables.WeaponHandler.Raw.LastSpringRecoilX = 0
+                            gameTables.WeaponHandler.Raw.LastSpringRecoilY = 0
+                        end
                     end
                     function noSpread()
                         if Settings.CAMERA_SETTINGS.no_spread then
@@ -446,9 +471,32 @@ init = function()
                                         v[index] = 0
                                     end
                                 end
+                                if v.Offset then
+                                    v.Offset = CFrame.new()
+                                end
                             end
+                            gameTables.WeaponHandler.Raw.Offset = CFrame.new()
                         else
-                            gameTables.Weapon.Raw = {table.unpack(gameTables.Weapon.Copy)}
+                            for i, v in pairs(gameTables.Weapon.Raw) do
+                                for _, index in ipairs({
+                                    'Spread',
+                                    'MovementSpreadPenalty',
+                                    'FirstShotSpread',
+                                    'MovementSpreadTime',
+                                    'ScopeSpread',
+                                }) do
+                                    if v[index] then
+                                        pcall(function()
+                                            v[index] = gameTables.Weapon.Copy[i][index]
+                                        end)
+                                    end
+                                end
+                                if v.Offset then
+                                    pcall(function()
+                                        v.Offset = gameTables.Weapon.Copy[i].Offset
+                                    end)
+                                end
+                            end
                         end
                     end
                     function updateFireRate()
@@ -459,126 +507,153 @@ init = function()
                                 end
                             end
                         else
-                            gameTables.Weapon.Raw = {table.unpack(gameTables.Weapon.Copy)}
+                            for i, v in pairs(gameTables.Weapon.Raw) do
+                                if v and v.FireRate then
+                                    pcall(function()
+                                        print(i)
+                                        v.FireRate = gameTables.Weapon.Copy[i].FireRate
+                                    end)
+                                end
+                            end
                         end
                     end
-        
-                    local page = window:addPage(games_scripts["5993942214"].name, 5012544693) do
-                        local ESP = page:addSection('ESP') do
-                            local tog = ESP:addToggle('Esp toggle', Settings.ESP_SETTINGS.on, function(v)
+                    function increasedSpeed()
+                        if Settings.MISC_SETTINGS.increasedmovementspeed then
+                            for i, v in pairs(gameTables.Weapon.Raw) do
+                                if v and v.MovementSpeedMultiplier then
+                                    v.MovementSpeedMultiplier = 1.5
+                                end
+                            end
+                        else
+                            for i, v in pairs(gameTables.Weapon.Raw) do
+                                if v and v.MovementSpeedMultiplier then
+                                    pcall(function()
+                                        print(i)
+                                        v.MovementSpeedMultiplier = gameTables.Weapon.Copy[i].MovementSpeedMultiplier
+                                    end)
+                                end
+                            end
+                        end
+                    end
+                    local page_esp = window:NewTab('Esp') do
+                        local ESP = page_esp:NewSection('Main') do
+                            local tog = ESP:NewToggle('Esp toggle', 'toggles esp on and off',Settings.ESP_SETTINGS.on, function(v)
                                 Settings.ESP_SETTINGS.on = v
                             end)
-                            ESP:addKeybind('Esp toggle keybind', Enum.KeyCode[Settings.ESP_SETTINGS.keybind], function()
+                            ESP:NewKeybind('Esp toggle keybind', 'toggles esp on and off',Enum.KeyCode[Settings.ESP_SETTINGS.keybind], function()
                                 Settings.ESP_SETTINGS.on = not Settings.ESP_SETTINGS.on
-                                ESP:updateToggle(tog, 'Esp toggle', Settings.ESP_SETTINGS.on)
+                                tog:UpdateToggle('Esp toggle', Settings.ESP_SETTINGS.on)
                             end, function(key)
                                 Settings.ESP_SETTINGS.keybind = tostring(key.KeyCode):split(".")[3]
                             end)
-                            ESP:addToggle('Esp Overide', Settings.ESP_SETTINGS.overide, function(v)
+                            ESP:NewToggle('Esp Overide', "when you're spectating, it will still show you the esp",Settings.ESP_SETTINGS.overide, function(v)
                                 Settings.ESP_SETTINGS.overide = v
                             end)
-                            ESP:addToggle('Tracers', Settings.ESP_SETTINGS.tracers, function(v)
+                            ESP:NewToggle('Tracers', 'toggle tracer esp',Settings.ESP_SETTINGS.tracers, function(v)
                                 Settings.ESP_SETTINGS.tracers = v
                             end)
-                            ESP:addToggle('Boxes', Settings.ESP_SETTINGS.box, function(v)
+                            ESP:NewToggle('Boxes', 'toggle box esp',Settings.ESP_SETTINGS.box, function(v)
                                 Settings.ESP_SETTINGS.box = v
                             end)
-                            --ESP:addDropdown('Aim at', {'head', 'humanoid'}, function(v)
-                                --Settings.ESP_SETTINGS.aim = v
-                            --end)
-                            cWrap(function()
-                                wait(1)
-                                ESP:Resize()
+                            ESP:NewDropdown('Aim at', 'for what the esp tracers will aim at',{'head', 'humanoid'}, function(v)
+                                Settings.ESP_SETTINGS.aim = v
                             end)
                         end
-                        local COLORS = page:addSection('ESP Colors') do
-                            COLORS:addColorPicker('Same team', Color3.new(table.unpack(Settings.ESP_SETTINGS.colors.sameTeam)), function(c)
-                                Settings.ESP_SETTINGS.colors.sameTeam = {c.R, c.G, c.B}
+                        local COLORS = page_esp:NewSection('ESP Colors') do
+                            COLORS:NewColorPicker('Same team','esp color for same team', Color3.fromRGB(table.unpack(Settings.ESP_SETTINGS.colors.sameTeam)), function(c)
+                                Settings.ESP_SETTINGS.colors.sameTeam = {math.floor(c.R*255),math.floor(c.G*255),math.floor(c.B*255)}
                             end)
-                            COLORS:addColorPicker('Opponent team', Color3.new(table.unpack(Settings.ESP_SETTINGS.colors.otherTeam)), function(c)
-                                Settings.ESP_SETTINGS.colors.otherTeam = {c.R, c.G, c.B}
+                            COLORS:NewColorPicker('Opponent team', 'esp color for opponent team',Color3.fromRGB(table.unpack(Settings.ESP_SETTINGS.colors.otherTeam)), function(c)
+                                Settings.ESP_SETTINGS.colors.otherTeam = {math.floor(c.R*255),math.floor(c.G*255),math.floor(c.B*255)}
                             end)
-                            COLORS:addColorPicker('Aimbot target color', Color3.new(table.unpack(Settings.ESP_SETTINGS.colors.aimed)), function(c)
-                                Settings.ESP_SETTINGS.colors.aimed = {c.R, c.G, c.B}
+                            COLORS:NewColorPicker('Aimbot target color', 'esp color for aimbot target',Color3.fromRGB(table.unpack(Settings.ESP_SETTINGS.colors.aimed)), function(c)
+                                Settings.ESP_SETTINGS.colors.aimed = {math.floor(c.R*255),math.floor(c.G*255),math.floor(c.B*255)}
                             end)
                         end
-                        local AIMBOT = page:addSection('AIMBOT') do
-                            local tog = AIMBOT:addToggle('Aimbot toggle', Settings.AIMBOT_SETTINGS.on, function(v)
+                    end
+                    local page_aimbot = window:NewTab('Aimbot') do
+                        local AIMBOT = page_aimbot:NewSection('AIMBOT', true) do
+                            local tog = AIMBOT:NewToggle('Aimbot toggle', 'toggles aimbot on and off',Settings.AIMBOT_SETTINGS.on, function(v)
                                 Settings.AIMBOT_SETTINGS.on = v
                             end)
-                            AIMBOT:addKeybind('Aimbot toggle keybind', Enum.KeyCode[Settings.AIMBOT_SETTINGS.keybind], function()
+                            AIMBOT:NewKeybind('Aimbot toggle keybind', 'toggles aimbot on and off',Enum.KeyCode[Settings.AIMBOT_SETTINGS.keybind], function()
                                 Settings.AIMBOT_SETTINGS.on = not Settings.AIMBOT_SETTINGS.on
-                                AIMBOT:updateToggle(tog, 'Aimbot toggle', Settings.AIMBOT_SETTINGS.on)
+                                tog:UpdateToggle('Aimbot toggle', Settings.AIMBOT_SETTINGS.on)
                             end, function(key)
                                 Settings.AIMBOT_SETTINGS.keybind = tostring(key.KeyCode):split(".")[3]
                             end)
-                            AIMBOT:addToggle('Show aiming at', Settings.AIMBOT_SETTINGS.showaim, function(v)
+                            AIMBOT:NewToggle('Show aiming at', "shows what player you're aiming at by changing esp",Settings.AIMBOT_SETTINGS.showaim, function(v)
                                 Settings.AIMBOT_SETTINGS.showaim = v
                             end)
-                            --AIMBOT:addToggle('Player has to be Visible', Settings.AIMBOT_SETTINGS.visible, function(v)
+                            --AIMBOT:NewToggle('Player has to be Visible','checks if player is visible before aiming',Settings.AIMBOT_SETTINGS.visible, function(v)
                                 --Settings.AIMBOT_SETTINGS.visible = v
                             --end)
-                            --AIMBOT:addDropdown('Aim at', {'head', 'humanoid'}, function(v)
-                                --Settings.AIMBOT_SETTINGS.aim = v
-                            --end)
-                            --AIMBOT:addDropdown('Aim method', {'closest to player', 'closest to mouse'}, function(v)
-                                --Settings.AIMBOT_SETTINGS.aim_setting = v
-                                --print(Settings.AIMBOT_SETTINGS.aim_setting)
-                            --end)
-                            AIMBOT:addSlider('Smoothness', Settings.AIMBOT_SETTINGS.smooth, 1, 100, function(v)
+                            AIMBOT:NewDropdown('Aimbot aim at', 'change what the aimbot will aim at',{'head', 'humanoid'}, function(v)
+                                Settings.AIMBOT_SETTINGS.aim = v
+                            end)
+                            AIMBOT:NewDropdown('Aimbot aim method', 'aim method of aimbot', {'closest to player', 'closest to mouse'}, function(v)
+                                Settings.AIMBOT_SETTINGS.aim_setting = v
+                            end)
+                            AIMBOT:NewSlider('Smoothness', 'changes the smoothness of aimbot',Settings.AIMBOT_SETTINGS.smooth, 1, 100, function(v)
                                 Settings.AIMBOT_SETTINGS.smooth = v
                             end)
-                            AIMBOT:addSlider('Distance', Settings.AIMBOT_SETTINGS.distance, 1, 1000, function(v)
+                            AIMBOT:NewSlider('Distance', 'distance for aimbot to start aiming', Settings.AIMBOT_SETTINGS.distance, 1, 1000, function(v)
                                 Settings.AIMBOT_SETTINGS.distance = v
                             end)
                         end
-                        local CAMERA = page:addSection('CAMERA') do
-                            CAMERA:addToggle('No recoil', Settings.CAMERA_SETTINGS.no_recoil, function(v)
+                    end
+                    local page_char = window:NewTab('Character') do
+                        local CHAR = page_char:NewSection('CHARACTER', true) do
+                            CHAR:NewToggle('Increased movement speed', 'changes the movement speed of the character by 50%',Settings.MISC_SETTINGS.increasedmovementspeed, function(v)
+                                Settings.MISC_SETTINGS.increasedmovementspeed = v
+                                increasedSpeed()
+                            end)
+                        end
+                    end
+                    local page_camera = window:NewTab('Camera') do
+                        local CAMERA = page_camera:NewSection('CAMERA', true) do
+                            CAMERA:NewToggle('No recoil',  'removes recoil from all weapons',Settings.CAMERA_SETTINGS.no_recoil, function(v)
                                 Settings.CAMERA_SETTINGS.no_recoil = v
                             end)
-                            CAMERA:addToggle('No shake', Settings.CAMERA_SETTINGS.no_shake, function(v)
+                            CAMERA:NewToggle('No shake', 'removes shake when firing a weapon',Settings.CAMERA_SETTINGS.no_shake, function(v)
                                 Settings.CAMERA_SETTINGS.no_shake = v
                             end)
-                            CAMERA:addToggle('No spread', Settings.CAMERA_SETTINGS.no_spread, function(v)
+                            CAMERA:NewToggle('No spread', 'removes spread from all weapons',Settings.CAMERA_SETTINGS.no_spread, function(v)
                                 Settings.CAMERA_SETTINGS.no_spread = v
                                 noSpread()
                             end)
                         end
-                        local MISC = page:addSection('OTHER') do
-                            MISC:addToggle('Firerate Overide', Settings.MISC_SETTINGS.firerateOveride, function(v)
+                    end
+                    local page_misc = window:NewTab('Weapon Mods') do
+                        local MISC = page_misc:NewSection('OTHER', true) do
+                            MISC:NewToggle('Firerate Overide', 'turns on firerate',Settings.MISC_SETTINGS.firerateOveride, function(v)
                                 Settings.MISC_SETTINGS.firerateOveride = v
                                 updateFireRate()
                             end)
-                            MISC:addSlider('Firerate', Settings.MISC_SETTINGS.firerate * 1000, 1, 1000, function(v)
-                                Settings.MISC_SETTINGS.firerate = v / 1000
+                            MISC:NewSlider('Firerate [RPM]', 'firerate for guns in RPM',(1000/(Settings.MISC_SETTINGS.firerate * 10000))*60, 1, 6000, function(v)
+                                Settings.MISC_SETTINGS.firerate = (1000/(v/60))/10000 --// calculated rpm for the game
                                 updateFireRate()
                             end)
                         end
-                        window:SelectPage(window.pages[1], true)
                     end
-                    
                     renderS:Connect(function()
-                        cWrap(function()
-                            local s,e = pcall(function()
-                                esp_run()
-                            end)
-                            if not s then
-                                print(e)
-                            end
+                        local s,e = pcall(function()
+                            esp_run()
                         end)
-                        cWrap(function()
-                            local s,e = pcall(function()
-                                aimbot_run()
-                            end)
-                            if not s then
-                                print(e)
-                            end
+                        if not s then
+                            print(e)
+                        end
+                        local s,e = pcall(function()
+                            aimbot_run()
                         end)
+                        if not s then
+                            print(e)
+                        end
                     end)
-                    noRecoil()
-                    noShake()
+                    noMods()
                     noSpread()
                     updateFireRate()
+                    increasedSpeed()
                 end,
             },
         }
@@ -587,12 +662,11 @@ init = function()
             UI_SETTINGS = {
                 UI_POS = { 0, camera.ViewportSize.X / 2, 0, camera.ViewportSize.Y / 2 },
                 COLORS = {
-                    Background = { 0.0941176, 0.0941176, 0.0941176 },
-                    Glow = { 0, 0, 0 },
-                    Accent = { 0.0392157, 0.0392157, 0.0392157 },
-                    LightContrast = { 0.0784314, 0.0784314, 0.0784314 },
-                    DarkContrast = { 0.054902, 0.054902, 0.054902 },
-                    TextColor = { 1, 1, 1 },
+                    SchemeColor = { 64, 64, 64 },
+                    Background = { 0, 0, 0 },
+                    Header = { 0, 0, 0 },
+                    TextColor = { 255,255,255 },
+                    ElementColor = { 20, 20, 20 },
                 },
                 OPEN_CLOSE = "RightShift",
             },
@@ -610,75 +684,69 @@ init = function()
         
         loadSettings(Settings)
         
-        local load_ui = function(settings)
-            local window = library.new("Arduino")
+        local load_ui = function(settings, name)
+            local window = library.CreateLib("Arduino - " .. name, 'DarkTheme')
             do
                 for theme, color3 in pairs(settings.UI_SETTINGS.COLORS) do
-                    window:setTheme(theme, Color3.new(table.unpack(color3)))
+                    library:ChangeColor(theme, Color3.fromRGB(table.unpack(color3)))
                 end
             end
-        
-            utility:DraggingEnded(function()
-                settings.UI_SETTINGS.UI_POS = {
-                    0,
-                    window.container.Main.Position.X.Offset,
-                    0,
-                    window.container.Main.Position.Y.Offset,
-                }
-            end)
         
             return window
         end
         
         local finalize_ui = function(window, settings)
-            local set = window:addPage("Ui Settings", 5012544693)
-            local colors = set:addSection("Colors")
+            local set = window:NewTab("Ui Settings")
+            local colors = set:NewSection("Colors")
         
             for theme, color in pairs(settings.UI_SETTINGS.COLORS) do
-                local color = Color3.new(table.unpack(color))
+                local color = Color3.fromRGB(table.unpack(color))
         
-                colors:addColorPicker(theme, color, function(color3)
-                    window:setTheme(theme, color3)
-                    settings.UI_SETTINGS.COLORS[theme] = { color3.R, color3.G, color3.B }
+                colors:NewColorPicker(theme,'change color for ' .. theme, color, function(color3)
+                    libary:ChangeColor(theme, color3)
+                    settings.UI_SETTINGS.COLORS[theme] = { math.floor(color3.R*255), math.floor(color3.G*255), math.floor(color3.B*255) }
                 end)
             end
         
-            local ui_s = set:addSection("Miscellaneous")
-            ui_s:addKeybind("Toggle UI", Enum.KeyCode[settings.UI_SETTINGS.OPEN_CLOSE], function()
-                if window.position then
-                    settings.UI_SETTINGS.UI_POS = {
-                        0,
-                        window.container.Main.Position.X.Offset,
-                        0,
-                        window.container.Main.Position.Y.Offset,
-                    }
-                end
-                window:toggle()
+            local ui_s = set:NewSection("Miscellaneous") 
+            ui_s:NewKeybind("Toggle UI", 'Toggles ui?',Enum.KeyCode[settings.UI_SETTINGS.OPEN_CLOSE], function() 
+                library:ToggleUI() 
             end, function(key)
-                settings.UI_SETTINGS.OPEN_CLOSE = tostring(key.KeyCode):split(".")[3]
+                settings.UI_SETTINGS.OPEN_CLOSE = tostring(key.KeyCode):split(".")[3] 
             end)
-            ui_s:addButton("Save Settings", function()
-                saveSettings(settings)
+            ui_s:NewButton("Save Settings", 'saves settings',function()
+                settings.UI_SETTINGS.UI_POS = {
+                    0,
+                    window.container.Position.X.Offset,
+                    0,
+                    window.container.Position.Y.Offset,
+                }
+                saveSettings(settings) 
             end)
         
-            window.container.Main.Position = UDim2.new(table.unpack(settings.UI_SETTINGS.UI_POS))
+            window.container.Position = UDim2.new(table.unpack(settings.UI_SETTINGS.UI_POS)) 
         
-            onLeave(function()
-                saveSettings(settings)
+            onLeave(function() 
+                settings.UI_SETTINGS.UI_POS = { 
+                    0, 
+                    window.container.Position.X.Offset,
+                    0,
+                    window.container.Position.Y.Offset,
+                }
+                saveSettings(settings) 
             end)
         end
         
-        local Arduino = load_ui(Settings) do
-            for _, ta in pairs(games_scripts) do
-                if ta.check() and (not ta.Detected) then
-                    cWrap(function()
-                        ta.main(Arduino, Settings)
-                        finalize_ui(Arduino, Settings)
-                    end)
-                    break
-                end
+        for _, ta in pairs(games_scripts) do
+            if ta.check() and (not ta.Detected) then
+                cWrap(function()
+                    local Arduino = load_ui(Settings, ta.name) -- load ui
+                    ta.main(Arduino, Settings) -- run main
+                    finalize_ui(Arduino, Settings) -- finalize ui
+                end)
+                break
             end
-        end        
+        end
 	end
 	local request = (syn and syn.request)
 	if request and (key and tostring(key)) then
