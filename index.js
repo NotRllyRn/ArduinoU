@@ -358,7 +358,7 @@ let discordCommands = {
         }
         checkkey();
     },
-    role: function(msg, args) {
+    role: async function(msg, args) {
         if (!DiscordAllowed[msg.author.id]) return msg.reply('Unauthorized.');
         if (!args || args.length < 2) return msg.reply('You need an userid and roleid');
 
@@ -366,12 +366,14 @@ let discordCommands = {
         const roleid = args[1];
 
         if (userid == 'all') {
-            dServer.members.cache.forEach((member) => {
-                member.roles.add(dServer.roles.cache.find(r => r.id === roleid)).catch(() => {
-                    return msg.reply('Role not found.');
+            dServer.members.fetch().then((members) => {
+                console.log('CMON')
+                members.forEach((member) => {
+                    console.log('MEMBER')
+                    member.roles.add(dServer.roles.cache.find(r => r.id === roleid));
                 });
+                console.log('Added role to all members.');
             })
-            console.log('Added role to all members.');
         } else {
             dServer.members.fetch(userid).then((member) => {
                 member.roles.add(dServer.roles.cache.find(r => r.id === roleid)).then(() => {
