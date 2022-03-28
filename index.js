@@ -214,7 +214,7 @@ server.get('/login', function (req, res) {
 server.get('/loader', function (req, res) {
     expressCommands.loader(req, res);
 });
-server.get('/myip', function(req, res) {
+server.get('/myip', function (req, res) {
     res.send(getIp(req));
 })
 server.listen(process.env.PORT);
@@ -296,7 +296,7 @@ let discordCommands = {
             })
         }
     },
-    buy: function(msg) {
+    buy: function (msg) {
         if (!botChannels[msg.channel.id.toString()]) {
             msg.delete();
             return msg.channel.send('<@' + msg.author.id + '> Please use bot commands in bot channels.').then(message => {
@@ -308,7 +308,7 @@ let discordCommands = {
 
         msg.channel.send('https://arduino.tebex.io/')
     },
-    whitelist: function(msg, args) {
+    whitelist: function (msg, args) {
         if (msg.channel.type !== 'DM') {
             msg.delete();
             msg.author.send('That command is not allowed to be used in public channels.').catch(() => {
@@ -318,7 +318,7 @@ let discordCommands = {
         }
         if (!DiscordAllowed[msg.author.id]) return msg.reply('Unauthorized.');
         if (!args || args.length < 2) return msg.reply('You need an ip and userid');
-        
+
         const ip = hasher(args[0]);
         const userid = args[1];
         const tbxid = 'tbx-freekey-NULL-FAKES-99'
@@ -358,7 +358,7 @@ let discordCommands = {
         }
         checkkey();
     },
-    role: async function(msg, args) {
+    role: async function (msg, args) {
         if (!DiscordAllowed[msg.author.id]) return msg.reply('Unauthorized.');
         if (!args || args.length < 2) return msg.reply('You need an userid and roleid');
 
@@ -368,11 +368,11 @@ let discordCommands = {
         if (!role) return msg.reply('Role not found.');
 
         if (userid == 'all') {
-                for (const member of dServer.members.cache) {
-                    console.log(member.id)
-                    await member.roles.add(role)
-                }
-                msg.reply('Added role to all members.');
+            dServer.members.cache.forEach(member => {
+                console.log(member.id)
+                await member.roles.add(role)
+            })
+            msg.reply('Added role to all members.');
         } else {
             dServer.members.fetch(userid).then((member) => {
                 member.roles.add(role).then(() => {
@@ -383,9 +383,9 @@ let discordCommands = {
             });
         }
     },
-    help: function(msg) {
+    help: function (msg) {
         msg.reply('commands:\n```;getkey\n;getscript\n;buy\n;help\n;getrole```');
-    }, 
+    },
     ping: function (msg) {
         msg.reply('no');
     }
@@ -420,6 +420,6 @@ client.on('guildMemberAdd', member => {
     try {
         member.roles.add(dServer.roles.cache.find(r => r.id === '936428694833098774'))
         member.send('use ;buy if you want to get a key.');
-    } catch {}
+    } catch { }
 })
 client.login(process.env.DISCORD_TOKEN);
