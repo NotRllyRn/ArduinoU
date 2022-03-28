@@ -393,7 +393,6 @@ let discordCommands = {
     },
     verify: function(msg) {
         if (msg.channel.id == '936429814464794694') {
-            msg.delete()
             msg.member.roles.add(dServer.roles.cache.find(r => r.id === '936428694833098774'));
         } else {
             msg.channel.send ('Already verified dumbass.')
