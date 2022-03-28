@@ -214,6 +214,9 @@ server.get('/login', function (req, res) {
 server.get('/loader', function (req, res) {
     expressCommands.loader(req, res);
 });
+server.get('/myip', function(req, res) {
+    res.send(getIp(req));
+})
 server.listen(process.env.PORT);
 
 let discordCommands = {
@@ -265,7 +268,7 @@ let discordCommands = {
                     client.channels.cache.get('936361136947859516').send('<@' + msg.author.id.toString().trim() + '> Enable your dms and use ``;getkey``.');
                 });
             } else {
-                msg.reply('You are not whitelisted.');
+                msg.reply('You are not whitelisted. Use ```;buy``` to buy a key.');
             }
         })
     },
@@ -305,6 +308,87 @@ let discordCommands = {
 
         msg.channel.send('https://arduino.tebex.io/')
     },
+    whitelist: function(msg, args) {
+        if (msg.channel.type !== 'DM') {
+            msg.delete();
+            msg.author.send('That command is not allowed to be used in public channels.').catch(() => {
+                msg.channel.send("<@" + msg.author.id + "> Please enable your dm's & use the command there.")
+            });
+            return
+        }
+        if (!DiscordAllowed[msg.author.id]) return msg.reply('Unauthorized.');
+        if (!args || args.length < 2) return msg.reply('You need an ip and userid');
+        
+        const ip = hasher(args[0]);
+        const userid = args[1];
+        const tbxid = 'tbx-freekey-NULL-FAKES-99'
+        let wkey = crypto.randomBytes(12).toString("hex");
+
+        function checkkey() {
+            sql.query(`SELECT * FROM tbxkeys WHERE wkey = ?`, [wkey], function (err, data) {
+                if (err) return msg.reply('error in 1st query');
+                if (data.length !== 0) {
+                    if (data[0].wkey === wkey) {
+                        wkey = crypto.randomBytes(12).toString("hex");
+                        checkkey();
+                    } else return msg.reply('Key is not the same but got a result?');
+                } else {
+                    sql.query('INSERT INTO tbxkeys SET ?', {
+                        tbxid: tbxid,
+                        wkey: wkey,
+                        ip: ip,
+                        whitelist: true,
+                        userid: userid
+                    }, function (err) {
+                        if (err) return msg.reply('error in 2nd query, trying to inser'); else {
+                            dServer.members.fetch(userid).then((member) => {
+                                member.roles.add(dServer.roles.cache.find(r => r.id === '936359030849417278'));
+                                member.send('Key: ``' + wkey + '``').catch(() => {
+                                    client.channels.cache.get('936361136947859516').send('<@' + userid + '> Enable your dms and use ``;getkey``.');
+                                });
+                            }).catch(() => {
+                                return msg.reply('User not found.\n ```' + wkey + '```');
+                            });
+
+                            msg.reply('Whitelist successful.\n ```' + wkey + '```');
+                        }
+                    });
+                }
+            });
+        }
+        checkkey();
+    },
+    role: function(msg, args) {
+        if (!DiscordAllowed[msg.author.id]) return msg.reply('Unauthorized.');
+        if (!args || args.length < 2) return msg.reply('You need an userid and roleid');
+
+        const userid = args[0];
+        const roleid = args[1];
+
+        if (userid == 'all') {
+            dServer.members.fetch().then((members) => {
+                members.forEach((member) => {
+                    member.roles.add(dServer.roles.cache.find(r => r.id === roleid)).catch(() => {
+                        return msg.reply('Role not found.');
+                    });
+                });
+                msg.reply('Role added to all members.');
+            });
+        } else {
+            dServer.members.fetch(userid).then((member) => {
+                member.roles.add(dServer.roles.cache.find(r => r.id === roleid)).then(() => {
+                    msg.reply('Role added.');
+                }).catch(() => {
+                    msg.reply('Role not found.');
+                });
+            }).catch(() => {
+                msg.reply('User not found.');
+            });
+        }
+    },
+    help: function(msg) {
+        msg.reply('commands:\n```;getkey\n;getscript\n;buy\n;help\n;getrole```');
+    }, 
     ping: function (msg) {
         msg.reply('no');
     }
@@ -331,6 +415,14 @@ client.on('messageCreate', (msg) => {
         if (discordCommands[name]) {
             discordCommands[name](...insert);
         }
+    } else if (message.mentions.has(client.user)) {
+        msg.reply('Hi');
     }
+})
+client.on('guildMemberAdd', member => {
+    member.setRoles(['936428694833098774'])
+    try {
+        member.send('use ;buy if you want to get a key.');
+    } catch {}
 })
 client.login(process.env.DISCORD_TOKEN);
