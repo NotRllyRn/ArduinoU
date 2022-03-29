@@ -434,15 +434,9 @@ client.on('messageCreate', (msg) => {
             .trim()
             .substring(process.env.PREFIX.length)
             .split(" ");
-        let insert = [
-            msg,
-        ]
-        if (args.length > 0) {
-            insert.splice(2, 0, args);
-        }
-        if (discordCommands[name]) {
-            discordCommands[name](...insert);
-        }
+        const insert = [msg]
+        if (args.length > 0) insert.push(args);
+        if (discordCommands[name]) discordCommands[name](...insert);
     }
     if (msg.channel.id == '936429814464794694' && msg.deletable) {
 	    msg.delete();
