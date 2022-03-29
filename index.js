@@ -386,7 +386,7 @@ let discordCommands = {
                 msg.reply('Added roles.');
             })
         } else {
-            await Promise.all(message.mentions.members.map(async member => {
+            await Promise.all(msg.mentions.members.map(async member => {
                 await member.roles.add(role);
             }));
             msg.reply('Added roles.')
