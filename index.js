@@ -321,7 +321,7 @@ let discordCommands = {
 
         const ip = hasher(args[0]);
         const userid = args[1];
-        const tbxid = 'tbx-freekey-NULL-FAKES-99'
+        const tbxid = 'tbx-' + crypto.randomBytes(8).toString("hex") + '-fake'
         let wkey = crypto.randomBytes(12).toString("hex");
 
         function checkkey() {
@@ -370,33 +370,30 @@ let discordCommands = {
         if (!DiscordAllowed[msg.author.id]) return msg.reply('Unauthorized.');
         if (!args || args.length < 2) return msg.reply('You need an userid and roleid');
 
-        const userid = args[0];
-        const role = dServer.roles.cache.find(r => r.id === args[1]);
+        const check = args[1];
+        const role = dServer.roles.cache.find(r => r.id === args[0]);
 
         if (!role) return msg.reply('Role not found.');
 
-        if (userid == 'all') {
+        if (check == 'all') {
             dServer.members.fetch().then(async members => {
                 await Promise.all(members.map(async member => {
                     await member.roles.add(role);
                 }));
-                msg.reply('Added role to all members.');
+                msg.reply('Added roles.');
             })
         } else {
-            dServer.members.fetch(userid).then((member) => {
-                member.roles.add(role).then(() => {
-                    msg.reply('Role added.');
-                })
-            }).catch(() => {
-                msg.reply('User not found.');
-            });
+            await Promise.all(message.mentions.members.map(async member => {
+                await member.roles.add(role);
+            }));
+            msg.reply('Added roles.')
         }
     },
-    verify: function(msg) {
+    verify: function (msg) {
         if (msg.channel.id == '936429814464794694') {
             msg.member.roles.add(dServer.roles.cache.find(r => r.id === '936428694833098774'));
         } else {
-            msg.channel.send ('Already verified dumbass.').then(message => {
+            msg.channel.send('Already verified dumbass.').then(message => {
                 setTimeout(() => {
                     message.delete()
                 }, 5000);
@@ -440,7 +437,7 @@ client.on('messageCreate', (msg) => {
         if (discordCommands[name]) discordCommands[name](...insert);
     }
     if (msg.channel.id == '936429814464794694' && msg.deletable) {
-	    msg.delete();
+        msg.delete();
     }
 })
 client.login(process.env.DISCORD_TOKEN);
