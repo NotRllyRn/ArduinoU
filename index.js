@@ -376,9 +376,9 @@ let discordCommands = {
         if (!role) return msg.reply('Role not found.');
 
         if (userid == 'all') {
-            dServer.members.fetch().then(members => {
-                members.forEach(member => {
-                    member.roles.add(role);
+            dServer.members.fetch().then(async members => {
+                members.forEach(async member => {
+                    await member.roles.add(role);
                 });
                 msg.reply('Added role to all members.');
             })
