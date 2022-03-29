@@ -397,7 +397,6 @@ let discordCommands = {
         } else {
             msg.channel.send ('Already verified dumbass.')
         }
-        msg.delete()
     },
     help: function (msg) {
         if (!botChannels[msg.channel.id.toString()]) {
@@ -442,6 +441,9 @@ client.on('messageCreate', (msg) => {
         }
     } else if (msg.mentions.has(client.user)) {
         msg.reply('Hi');
+    }
+    if (msg.channel.id == '936429814464794694' && msg.deletable) {
+	    msg.delete();
     }
 })
 client.on('guildMemberAdd', member => {
