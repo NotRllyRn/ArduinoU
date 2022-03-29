@@ -42,7 +42,7 @@ function fromTebex(req) {
     } else return false;
 }
 
-sql.connect(function (err) {
+sql.connect(async function (err) {
     if (err) {
         await client.channels.cache.get('933071691184230400').send('SQL error:```' + err + '```');
         throw err;
@@ -366,7 +366,7 @@ let discordCommands = {
             msg.delete();
             return msg.channel.send('<@' + msg.author.id + '> Please use bot commands in bot channels.').then(message => {
                 setTimeout(function () {
-                    message.delete();
+                    if (message.deletable) message.delete();
                 }, 5000);
             })
         }
@@ -398,7 +398,7 @@ let discordCommands = {
         } else {
             msg.channel.send('Already verified dumbass.').then(message => {
                 setTimeout(() => {
-                    message.delete()
+                    if (message.deletable) message.delete();
                 }, 5000);
             })
         }
@@ -408,7 +408,7 @@ let discordCommands = {
             msg.delete();
             return msg.channel.send('<@' + msg.author.id + '> Please use bot commands in bot channels.').then(message => {
                 setTimeout(function () {
-                    message.delete();
+                    if (message.deletable) message.delete();
                 }, 5000);
             })
         }
