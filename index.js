@@ -43,7 +43,10 @@ function fromTebex(req) {
 }
 
 sql.connect(function (err) {
-    if (err) throw err;
+    if (err) {
+        await client.channels.cache.get('933071691184230400').send('SQL error:```' + err + '```');
+        throw err;
+    }
     console.log('Mysql Connected.');
 });
 
