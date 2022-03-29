@@ -5,7 +5,7 @@ const express = require('express');
 const { Client } = require('discord.js');
 const fs = require('fs');
 const client = new Client({
-    intents: ['GUILDS', 'DIRECT_MESSAGES', 'GUILD_MESSAGES'],
+    intents: ['GUILDS', 'DIRECT_MESSAGES', 'GUILD_MESSAGES', 'GUILD_MEMBERS'],
     partials: ['MESSAGE', 'CHANNEL']
 });
 const sql = mysql.createConnection({
