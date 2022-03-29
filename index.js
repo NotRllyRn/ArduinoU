@@ -395,7 +395,11 @@ let discordCommands = {
         if (msg.channel.id == '936429814464794694') {
             msg.member.roles.add(dServer.roles.cache.find(r => r.id === '936428694833098774'));
         } else {
-            msg.channel.send ('Already verified dumbass.')
+            msg.channel.send ('Already verified dumbass.').then(message => {
+                setTimeout(() => {
+                    message.delete()
+                }, 5000);
+            })
         }
     },
     help: function (msg) {
@@ -439,8 +443,6 @@ client.on('messageCreate', (msg) => {
         if (discordCommands[name]) {
             discordCommands[name](...insert);
         }
-    } else if (msg.mentions.has(client.user)) {
-        msg.reply('Hi');
     }
     if (msg.channel.id == '936429814464794694' && msg.deletable) {
 	    msg.delete();
