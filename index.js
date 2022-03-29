@@ -377,7 +377,7 @@ let discordCommands = {
 
         if (userid == 'all') {
             dServer.members.fetch().then(async members => {
-                await Promise.all(members.forEach(async member => {
+                await Promise.all(members.map(async member => {
                     await member.roles.add(role);
                 }));
                 msg.reply('Added role to all members.');
