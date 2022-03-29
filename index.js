@@ -442,11 +442,4 @@ client.on('messageCreate', (msg) => {
     if (msg.channel.id == '936429814464794694' && msg.deletable) {
 	    msg.delete();
     }
-})
-client.on('guildMemberAdd', member => {
-    try {
-        member.roles.add(dServer.roles.cache.find(r => r.id === '936428694833098774'))
-        member.send('use ;buy if you want to get a key.');
-    } catch { }
-})
 client.login(process.env.DISCORD_TOKEN);
