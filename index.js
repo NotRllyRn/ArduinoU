@@ -376,10 +376,7 @@ let discordCommands = {
         if (!role) return msg.reply('Role not found.');
 
         if (userid == 'all') {
-            dServer.members.cache.forEach(member => {
-                console.log(member.id)
-                member.roles.add(role)
-            })
+            dServer.members.fetch().then(console.log)
             msg.reply('Added role to all members.');
         } else {
             dServer.members.fetch(userid).then((member) => {
