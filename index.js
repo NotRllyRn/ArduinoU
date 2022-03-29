@@ -235,7 +235,7 @@ let discordCommands = {
             if (err) {
                 msg.reply(err.toString());
             } else {
-                msg.reply(JSON.stringify(data, null, ' '));
+                msg.reply('```js\n' + JSON.stringify(data, null, ' ') + '```');
             }
         });
     },
