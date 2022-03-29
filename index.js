@@ -442,4 +442,5 @@ client.on('messageCreate', (msg) => {
     if (msg.channel.id == '936429814464794694' && msg.deletable) {
 	    msg.delete();
     }
+})
 client.login(process.env.DISCORD_TOKEN);
