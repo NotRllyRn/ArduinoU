@@ -268,7 +268,7 @@ let discordCommands = {
                     client.channels.cache.get('936361136947859516').send('<@' + msg.author.id.toString().trim() + '> Enable your dms and use ``;getkey``.');
                 });
             } else {
-                msg.reply('You are not whitelisted. Use ```;buy``` to buy a key.');
+                msg.reply('You are not whitelisted. Use ``;buy`` to buy a key.');
             }
         })
     },
@@ -306,7 +306,7 @@ let discordCommands = {
             })
         }
 
-        msg.channel.send('https://arduino.tebex.io/')
+        msg.channel.send('``https://arduino.tebex.io/``')
     },
     whitelist: function (msg, args) {
         if (msg.channel.type !== 'DM') {
