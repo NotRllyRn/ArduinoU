@@ -309,7 +309,7 @@ let discordCommands = {
             })
         }
 
-        msg.channel.send('``https://arduino.tebex.io/``')
+        msg.channel.send('https://arduino.tebex.io/')
     },
     whitelist: function (msg, args) {
         if (msg.channel.type !== 'DM') {

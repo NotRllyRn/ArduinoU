@@ -75,8 +75,11 @@ games_scripts = {
 						if s and r then
 							gameTables[name] = {
 								Raw = v,
-								Copy = {table.unpack(v)}
+								Copy = {}
 							}
+							for i,v in pairs(v) do
+								gameTables[name].Copy[i] = v
+							end
 						end
 					end
 				end
@@ -113,7 +116,7 @@ games_scripts = {
 					overide = false,
 				},
 				AIMBOT_SETTINGS = {
-					smooth = 10,
+					smooth = 4,
 					on = false,
 					distance = 250,
 					aim = "head",
@@ -130,7 +133,7 @@ games_scripts = {
 				MISC_SETTINGS = {
 					firerateOveride = false,
 					firerate = 0.1,
-					increasedmovementspeed = false,
+					movement_speed = 1.4,
 				}
 			}
 			compare_save(Settings, settings.GAMES["5993942214"].SETTINGS)
@@ -376,7 +379,7 @@ games_scripts = {
 					end
 					gameTables.WeaponHandler.Raw.Offset = CFrame.new()
 				else
-					for i, v in pairs(gameTables.Weapon.Raw) do
+					for i, v in pairs(gameTables.Weapon.Copy) do
 						for _, index in ipairs({
 							'Spread',
 							'MovementSpreadPenalty',
@@ -386,13 +389,14 @@ games_scripts = {
 						}) do
 							if v[index] then
 								pcall(function()
-									v[index] = gameTables.Weapon.Copy[i][index]
+									print(gameTables.Weapon.Raw[i][index])
+									gameTables.Weapon.Raw[i][index] = v[index]
 								end)
 							end
 						end
 						if v.Offset then
 							pcall(function()
-								v.Offset = gameTables.Weapon.Copy[i].Offset
+								gameTables.Weapon.Raw[i].Offset = v.Offset
 							end)
 						end
 					end
@@ -406,31 +410,25 @@ games_scripts = {
 						end
 					end
 				else
-					for i, v in pairs(gameTables.Weapon.Raw) do
+					for i, v in pairs(gameTables.Weapon.Copy) do
+						print(i, v)
 						if v and v.FireRate then
-							pcall(function()
-								print(i)
-								v.FireRate = gameTables.Weapon.Copy[i].FireRate
+							local s,r = pcall(function()
+
+							print(i)
+							gameTables.Weapon.Raw[i].FireRate = v.FireRate
 							end)
+							if not s then
+								print(r)
+							end
 						end
 					end
 				end
 			end
 			function increasedSpeed()
-				if Settings.MISC_SETTINGS.increasedmovementspeed then
-					for i, v in pairs(gameTables.Weapon.Raw) do
-						if v and v.MovementSpeedMultiplier then
-							v.MovementSpeedMultiplier = 1.5
-						end
-					end
-				else
-					for i, v in pairs(gameTables.Weapon.Raw) do
-						if v and v.MovementSpeedMultiplier then
-							pcall(function()
-								print(i)
-								v.MovementSpeedMultiplier = gameTables.Weapon.Copy[i].MovementSpeedMultiplier
-							end)
-						end
+				for i, v in pairs(gameTables.Weapon.Raw) do
+					if v and v.MovementSpeedMultiplier then
+						v.MovementSpeedMultiplier = Settings.MISC_SETTINGS.movement_speed
 					end
 				end
 			end
@@ -503,8 +501,8 @@ games_scripts = {
 			end
 			local page_char = window:NewTab('Character') do
 				local CHAR = page_char:NewSection('CHARACTER', true) do
-					CHAR:NewToggle('Increased movement speed', 'changes the movement speed of the character by 50%',Settings.MISC_SETTINGS.increasedmovementspeed, function(v)
-						Settings.MISC_SETTINGS.increasedmovementspeed = v
+					CHAR:NewSlider('Increase movement speed', 'changes the movement speed of the character',Settings.MISC_SETTINGS.movement_speed*10,10,14, function(v)
+						Settings.MISC_SETTINGS.movement_speed = v/10
 						increasedSpeed()
 					end)
 				end
