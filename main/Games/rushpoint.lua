@@ -73,13 +73,12 @@ games_scripts = {
 					for name, check in pairs(gameTable_Checks) do
 						local s, r = check(v)
 						if s and r then
+                            heartS:Wait()
 							gameTables[name] = {
 								Raw = v,
 								Copy = {}
 							}
-							for i,v in pairs(v) do
-								gameTables[name].Copy[i] = v
-							end
+                            copyOver(v, gameTables[name].Copy)
 						end
 					end
 				end
@@ -139,6 +138,22 @@ games_scripts = {
 			compare_save(Settings, settings.GAMES["5993942214"].SETTINGS)
 			settings.GAMES["5993942214"].SETTINGS = Settings
 			Settings = settings.GAMES["5993942214"].SETTINGS
+
+			local walkspeed 
+			walkspeed = hookfunction(getrawmetatable(game).__newindex, function(...)
+				for i,v in pairs({...}) do
+					if not i or not v then
+						return walkspeed(...)
+					end
+				end
+
+				local self, data = select(1, ...)
+				if self == humanoid and data == 'WalkSpeed' then
+					return walkspeed(self, data, 16 * Settings.MISC_SETTINGS.movement_speed)
+				end
+
+				return walkspeed(...)
+			end)
 
 			local game_table = {}
 			local esp_run = function()
@@ -307,7 +322,7 @@ games_scripts = {
 				end
 			end
 
-			function noMods()
+			local function noMods()
 				local addRecoil = gameTables.Camera.Raw.AddRecoil
 				gameTables.Camera.Raw.AddRecoil = function(...)
 					if Settings.CAMERA_SETTINGS.no_recoil then
@@ -359,7 +374,7 @@ games_scripts = {
 					gameTables.WeaponHandler.Raw.LastSpringRecoilY = 0
 				end
 			end
-			function noSpread()
+			local function noSpread()
 				if Settings.CAMERA_SETTINGS.no_spread then
 					for i, v in pairs(gameTables.Weapon.Raw) do
 						for _, index in ipairs({
@@ -389,7 +404,6 @@ games_scripts = {
 						}) do
 							if v[index] then
 								pcall(function()
-									print(gameTables.Weapon.Raw[i][index])
 									gameTables.Weapon.Raw[i][index] = v[index]
 								end)
 							end
@@ -402,7 +416,7 @@ games_scripts = {
 					end
 				end
 			end
-			function updateFireRate()
+			local function updateFireRate()
 				if Settings.MISC_SETTINGS.firerateOveride then
 					for i, v in pairs(gameTables.Weapon.Raw) do
 						if v and v.FireRate then
@@ -411,24 +425,14 @@ games_scripts = {
 					end
 				else
 					for i, v in pairs(gameTables.Weapon.Copy) do
-						print(i, v)
 						if v and v.FireRate then
 							local s,r = pcall(function()
-
-							print(i)
-							gameTables.Weapon.Raw[i].FireRate = v.FireRate
+								gameTables.Weapon.Raw[i].FireRate = v.FireRate
 							end)
 							if not s then
 								print(r)
 							end
 						end
-					end
-				end
-			end
-			function increasedSpeed()
-				for i, v in pairs(gameTables.Weapon.Raw) do
-					if v and v.MovementSpeedMultiplier then
-						v.MovementSpeedMultiplier = Settings.MISC_SETTINGS.movement_speed
 					end
 				end
 			end
@@ -503,7 +507,6 @@ games_scripts = {
 				local CHAR = page_char:NewSection('CHARACTER', true) do
 					CHAR:NewSlider('Increase movement speed', 'changes the movement speed of the character',Settings.MISC_SETTINGS.movement_speed*10,10,14, function(v)
 						Settings.MISC_SETTINGS.movement_speed = v/10
-						increasedSpeed()
 					end)
 				end
 			end
@@ -550,7 +553,6 @@ games_scripts = {
 			noMods()
 			noSpread()
 			updateFireRate()
-			increasedSpeed()
 		end,
 	},
 }
