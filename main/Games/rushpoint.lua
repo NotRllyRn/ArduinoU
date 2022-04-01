@@ -73,12 +73,12 @@ games_scripts = {
 					for name, check in pairs(gameTable_Checks) do
 						local s, r = check(v)
 						if s and r then
-                            heartS:Wait()
+							heartS:Wait()
 							gameTables[name] = {
 								Raw = v,
 								Copy = {}
 							}
-                            copyOver(v, gameTables[name].Copy)
+							copyOver(v, gameTables[name].Copy)
 						end
 					end
 				end
@@ -138,22 +138,6 @@ games_scripts = {
 			compare_save(Settings, settings.GAMES["5993942214"].SETTINGS)
 			settings.GAMES["5993942214"].SETTINGS = Settings
 			Settings = settings.GAMES["5993942214"].SETTINGS
-
-			local walkspeed 
-			walkspeed = hookfunction(getrawmetatable(game).__newindex, function(...)
-				for i,v in pairs({...}) do
-					if not i or not v then
-						return walkspeed(...)
-					end
-				end
-
-				local self, data = select(1, ...)
-				if self == humanoid and data == 'WalkSpeed' then
-					return walkspeed(self, data, 16 * Settings.MISC_SETTINGS.movement_speed)
-				end
-
-				return walkspeed(...)
-			end)
 
 			local game_table = {}
 			local esp_run = function()
@@ -436,6 +420,14 @@ games_scripts = {
 					end
 				end
 			end
+			local function updateSpeed()
+				for i,v in pairs(gameTables.Weapon.Raw) do
+					if v and v.MovementSpeedMultiplier then
+						v.MovementSpeedMultiplier = Settings.MISC_SETTINGS.movement_speed
+					end
+				end
+			end
+
 			local page_esp = window:NewTab('Esp') do
 				local ESP = page_esp:NewSection('Main') do
 					local tog = ESP:NewToggle('Esp toggle', 'toggles esp on and off',Settings.ESP_SETTINGS.on, function(v)
@@ -505,8 +497,9 @@ games_scripts = {
 			end
 			local page_char = window:NewTab('Character') do
 				local CHAR = page_char:NewSection('CHARACTER', true) do
-					CHAR:NewSlider('Increase movement speed', 'changes the movement speed of the character',Settings.MISC_SETTINGS.movement_speed*10,10,14, function(v)
+					CHAR:NewSlider('Movement Speed', 'changes the movement speed of the character',Settings.MISC_SETTINGS.movement_speed*10,10,14, function(v)
 						Settings.MISC_SETTINGS.movement_speed = v/10
+						updateSpeed()
 					end)
 				end
 			end
@@ -553,6 +546,7 @@ games_scripts = {
 			noMods()
 			noSpread()
 			updateFireRate()
+			updateSpeed()
 		end,
 	},
 }
