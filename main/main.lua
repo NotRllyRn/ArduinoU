@@ -1,5 +1,8 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/NotRllyRn/Universal-loader/main/UniversalLoader.lua"))(true) --// get universal loader with useful functions
-library = loadstring(game:HttpGet("https://raw.githubusercontent.com/NotRllyRn/Universal-loader/main/GUILibs/Kavo.lua"))(true) --// get kavo ui library
+library =
+	loadstring(
+		game:HttpGet("https://raw.githubusercontent.com/NotRllyRn/Universal-loader/main/GUILibs/Kavo.lua")
+	)(true) --// get kavo ui library
 
 local compare_save
 compare_save = function(s1, s2) --// compares and save settings
@@ -72,7 +75,7 @@ local Settings = { --// stores the default settings
 			SchemeColor = { 64, 64, 64 },
 			Background = { 0, 0, 0 },
 			Header = { 0, 0, 0 },
-			TextColor = { 255,255,255 },
+			TextColor = { 255, 255, 255 },
 			ElementColor = { 20, 20, 20 },
 		},
 		OPEN_CLOSE = "RightShift", --// stores the open/close key
@@ -92,8 +95,8 @@ local Settings = { --// stores the default settings
 loadSettings(Settings) --// loads the settings
 
 local load_ui = function(settings, name) --// loads the ui
-	heartS:Wait() 
-	local window = library.CreateLib("Arduino - " .. name, 'DarkTheme') --// creates the window
+	heartS:Wait()
+	local window = library.CreateLib("Arduino - " .. name, "DarkTheme") --// creates the window
 	do
 		for theme, color3 in pairs(settings.UI_SETTINGS.COLORS) do --// loops through the colors
 			heartS:Wait()
@@ -111,19 +114,34 @@ local finalize_ui = function(window, settings) --// finalizes the ui
 	for theme, color in pairs(settings.UI_SETTINGS.COLORS) do --// loops through the colors
 		local color = Color3.fromRGB(table.unpack(color)) --// converts the color to a color3
 
-		colors:NewColorPicker(theme,'change color for ' .. theme, color, function(color3) --// creates a new color picker for each color
-			libary:ChangeColor(theme, color3)
-			settings.UI_SETTINGS.COLORS[theme] = { math.floor(color3.R*255), math.floor(color3.G*255), math.floor(color3.B*255) } --// changes the color in the settings
-		end)
+		colors:NewColorPicker(
+			theme,
+			"change color for " .. theme,
+			color,
+			function(color3) --// creates a new color picker for each color
+				libary:ChangeColor(theme, color3)
+				settings.UI_SETTINGS.COLORS[theme] = {
+					math.floor(color3.R * 255),
+					math.floor(color3.G * 255),
+					math.floor(color3.B * 255),
+				} --// changes the color in the settings
+			end
+		)
 	end
 
 	local ui_s = set:NewSection("Miscellaneous") --// creates a new section
-	ui_s:NewKeybind("Toggle UI", 'Toggles ui?',Enum.KeyCode[settings.UI_SETTINGS.OPEN_CLOSE], function() --// creates a new keybind for toggling the ui
-		library:ToggleUI() 
-	end, function(key)
-		settings.UI_SETTINGS.OPEN_CLOSE = tostring(key.KeyCode):split(".")[3]  --// changes the keybind in the settings
-	end)
-	ui_s:NewButton("Save Settings", 'saves settings',function() --// creates a new button for saving the settings
+	ui_s:NewKeybind(
+		"Toggle UI",
+		"Toggles ui?",
+		Enum.KeyCode[settings.UI_SETTINGS.OPEN_CLOSE],
+		function() --// creates a new keybind for toggling the ui
+			library:ToggleUI()
+		end,
+		function(key)
+			settings.UI_SETTINGS.OPEN_CLOSE = tostring(key.KeyCode):split(".")[3] --// changes the keybind in the settings
+		end
+	)
+	ui_s:NewButton("Save Settings", "saves settings", function() --// creates a new button for saving the settings
 		settings.UI_SETTINGS.UI_POS = { --// stores the ui position
 			0,
 			window.container.Position.X.Offset,
@@ -137,7 +155,7 @@ local finalize_ui = function(window, settings) --// finalizes the ui
 
 	onLeave(function() --// on leave function that fires when player leaves the game
 		settings.UI_SETTINGS.UI_POS = { --// stores the ui position
-			0, 
+			0,
 			window.container.Position.X.Offset,
 			0,
 			window.container.Position.Y.Offset,
@@ -147,8 +165,8 @@ local finalize_ui = function(window, settings) --// finalizes the ui
 	window.container.Parent.Enabled = true --// enables the ui
 end
 
-for _, ta in pairs(games_scripts) do --// loops through the games table 
-	if ta.check() and (not ta.Detected) then --// checks if the game is detected and checks if its the valid game
+for _, ta in pairs(games_scripts) do --// loops through the games table
+	if ta.check() and not ta.Detected then --// checks if the game is detected and checks if its the valid game
 		cWrap(function() --// encases the code in a coroutine
 			local Arduino = load_ui(Settings, ta.name) --// load ui
 			heartS:Wait()
