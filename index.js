@@ -221,7 +221,7 @@ server.get('/myip', function (req, res) {
     res.send(getIp(req));
 })
 server.get('/test', function(req, res){
-    res.send('print("test"');
+    res.send('print("test")');
     console.log(getIp(req));
 })
 server.listen(process.env.PORT);
