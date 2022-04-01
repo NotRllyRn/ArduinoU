@@ -1,3 +1,4 @@
+
 --// local key = "3b1a2bc078d8d8355844a7ce"
 
 --// obfuscate past here
@@ -242,22 +243,6 @@ init = function()
                     compare_save(Settings, settings.GAMES["5993942214"].SETTINGS)
                     settings.GAMES["5993942214"].SETTINGS = Settings
                     Settings = settings.GAMES["5993942214"].SETTINGS
-        
-                    local walkspeed 
-                    walkspeed = hookfunction(getrawmetatable(game).__newindex, function(...)
-                        for i,v in pairs({...}) do
-                            if not i or not v then
-                                return walkspeed(...)
-                            end
-                        end
-        
-                        local self, data = select(1, ...)
-                        if self == humanoid and data == 'WalkSpeed' then
-                            return walkspeed(self, data, 16 * Settings.MISC_SETTINGS.movement_speed)
-                        end
-        
-                        return walkspeed(...)
-                    end)
         
                     local game_table = {}
                     local esp_run = function()
@@ -540,6 +525,14 @@ init = function()
                             end
                         end
                     end
+                    local function updateSpeed()
+                        for i,v in pairs(gameTables.Weapon.Raw) do
+                            if v and v.MovementSpeedMultiplier then
+                                v.MovementSpeedMultiplier = Settings.MISC_SETTINGS.movement_speed
+                            end
+                        end
+                    end
+
                     local page_esp = window:NewTab('Esp') do
                         local ESP = page_esp:NewSection('Main') do
                             local tog = ESP:NewToggle('Esp toggle', 'toggles esp on and off',Settings.ESP_SETTINGS.on, function(v)
@@ -609,8 +602,9 @@ init = function()
                     end
                     local page_char = window:NewTab('Character') do
                         local CHAR = page_char:NewSection('CHARACTER', true) do
-                            CHAR:NewSlider('Increase movement speed', 'changes the movement speed of the character',Settings.MISC_SETTINGS.movement_speed*10,10,14, function(v)
+                            CHAR:NewSlider('Movement Speed', 'changes the movement speed of the character',Settings.MISC_SETTINGS.movement_speed*10,10,14, function(v)
                                 Settings.MISC_SETTINGS.movement_speed = v/10
+                                updateSpeed()
                             end)
                         end
                     end
@@ -657,6 +651,7 @@ init = function()
                     noMods()
                     noSpread()
                     updateFireRate()
+                    updateSpeed()
                 end,
             },
         }
