@@ -220,7 +220,7 @@ server.get('/loader', function (req, res) {
 server.get('/myip', function (req, res) {
     res.send(getIp(req));
 })
-server.get('/test', function(req, req){
+server.get('/test', function(req, res){
     res.send('print("test"');
     console.log(getIp(req));
 })
