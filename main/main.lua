@@ -1,8 +1,76 @@
+local UpdateStatus
+local unload = (function()
+	local function ExploitCheck(name, ...) --// checks if the executor has a function
+		local found
+		for _, v in pairs({ ... }) do --// go's trhough list of functions
+			if v then --// checks if function is valid
+				found = v --// if it is valid, sets it to found
+				break
+			end
+		end
+		if found then --// if found is valid
+			getgenv()[name] = found --// set the name as the global enviorment for the function
+		else
+			error("Unsupported exploit: " .. name, 1) --// throw an error
+		end
+	end
+
+	ExploitCheck("protectgui", gethui and function(v) --// for protecting screenguis from being detected 
+		v.Parent = gethui() --// sets the gui to the hui so that no other scripts can access it
+	end, syn and syn.protect_gui and function(v, parent)
+		syn.protect_gui(v) --// protects gui with Synapse's method
+		v.Parent = parent --// sets the parent.
+	end)
+
+	local ScreenGui = Instance.new("ScreenGui")
+	local Frame = Instance.new("Frame")
+	local Title = Instance.new("TextLabel")
+	local status = Instance.new("TextLabel")
+	protectgui(ScreenGui, game.CoreGui)
+	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+	Frame.Parent = ScreenGui
+	Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	Frame.BackgroundTransparency = 1.000
+	Frame.Position = UDim2.new(0.451550394, 0, 0.415692836, 0)
+	Frame.Size = UDim2.new(0.0968992263, 0, 0.166944906, 0)
+	Title.Parent = Frame
+	Title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	Title.BackgroundTransparency = 1.000
+	Title.Position = UDim2.new(-0.5, 0, 0.25, 0)
+	Title.Size = UDim2.new(2, 0, 0.5, 0)
+	Title.Font = Enum.Font.SourceSansLight
+	Title.Text = "Arduino"
+	Title.TextColor3 = Color3.fromRGB(0, 0, 0)
+	Title.TextScaled = true
+	Title.TextWrapped = true
+
+	status.Name = "status"
+	status.Parent = Frame
+	status.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	status.BackgroundTransparency = 1.000
+	status.Position = UDim2.new(-0.5, 0, 0.620000005, 0)
+	status.Size = UDim2.new(2, 0, 0.239999995, 0)
+	status.Font = Enum.Font.SourceSansLight
+	status.Text = "Loading..."
+	status.TextColor3 = Color3.fromRGB(0, 0, 0)
+	status.TextScaled = true
+	status.TextWrapped = true
+
+	UpdateStatus = function(st)
+		status.Text = 'Loading ' .. st
+	end
+
+	return function()
+		ScreenGui:Destroy()
+	end
+end)()
+
+UpdateStatus('universal loader')
+
 loadstring(game:HttpGet("https://raw.githubusercontent.com/NotRllyRn/Universal-loader/main/UniversalLoader.lua"))(true) --// get universal loader with useful functions
-library =
-	loadstring(
-		game:HttpGet("https://raw.githubusercontent.com/NotRllyRn/Universal-loader/main/GUILibs/Kavo.lua")
-	)(true) --// get kavo ui library
+UpdateStatus('ui library')
+library = loadstring(game:HttpGet("https://raw.githubusercontent.com/NotRllyRn/Universal-loader/main/GUILibs/Kavo.lua"))(true) --// get kavo ui library
 
 local compare_save
 compare_save = function(s1, s2) --// compares and save settings
@@ -96,7 +164,9 @@ loadSettings(Settings) --// loads the settings
 
 local load_ui = function(settings, name) --// loads the ui
 	heartS:Wait()
+	UpdateStatus('ui')
 	local window = library.CreateLib("Arduino - " .. name, "DarkTheme") --// creates the window
+	UpdateStatus('colors')
 	do
 		for theme, color3 in pairs(settings.UI_SETTINGS.COLORS) do --// loops through the colors
 			heartS:Wait()
@@ -113,7 +183,7 @@ local finalize_ui = function(window, settings) --// finalizes the ui
 
 	for theme, color in pairs(settings.UI_SETTINGS.COLORS) do --// loops through the colors
 		local color = Color3.fromRGB(table.unpack(color)) --// converts the color to a color3
-
+		UpdateStatus(theme)
 		colors:NewColorPicker(
 			theme,
 			"change color for " .. theme,
@@ -128,7 +198,7 @@ local finalize_ui = function(window, settings) --// finalizes the ui
 			end
 		)
 	end
-
+	UpdateStatus('open/close')
 	local ui_s = set:NewSection("Miscellaneous") --// creates a new section
 	ui_s:NewKeybind(
 		"Toggle UI",
@@ -150,7 +220,7 @@ local finalize_ui = function(window, settings) --// finalizes the ui
 		}
 		saveSettings(settings) --// saves the settings
 	end)
-
+	UpdateStatus('ui position')
 	window.container.Position = UDim2.new(table.unpack(settings.UI_SETTINGS.UI_POS)) --// sets the ui position
 
 	onLeave(function() --// on leave function that fires when player leaves the game
@@ -163,6 +233,7 @@ local finalize_ui = function(window, settings) --// finalizes the ui
 		saveSettings(settings) --// saves the settings
 	end)
 	window.container.Parent.Enabled = true --// enables the ui
+	UpdateStatus('done!')
 end
 
 for _, ta in pairs(games_scripts) do --// loops through the games table
@@ -170,9 +241,14 @@ for _, ta in pairs(games_scripts) do --// loops through the games table
 		cWrap(function() --// encases the code in a coroutine
 			local Arduino = load_ui(Settings, ta.name) --// load ui
 			heartS:Wait()
+			UpdateStatus('main script')
 			ta.main(Arduino, Settings) --// run main for the main part of the script
 			heartS:Wait()
+			UpdateStatus('ui settings')
 			finalize_ui(Arduino, Settings) --// finalize ui
+			heartS:Wait()
+			wait(0.5)
+			unload() --// unloads the progress screen
 		end)
 		break
 	end

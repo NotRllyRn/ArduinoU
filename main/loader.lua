@@ -36,7 +36,6 @@ init = function()
 	end
 	local mainScript = function()
 		if (val0 == false) or (val1 == false) or (val2 == true) or (val3 == false) or (val4 == true) or (val5 == false) then
-			warn('Detected.')
 			return LPH_CRASH()
 		end
 		
@@ -90,7 +89,6 @@ init = function()
 				return back.Whitelisted, back.object
 			end)
 			if (a == false) or (b == true) or (b == nil) or (c == true) or (c == nil) then
-				warn('Detected.')
 				return LPH_CRASH()
 			end
 		end
@@ -111,7 +109,6 @@ init = function()
 			['object'] = bitsORIGINAL
 		})
 		if not (Url == LPH_ENCSTR('https://arduinou.herokuapp.com/execute/')) then
-			warn('Detected Url Change.')
 			return LPH_CRASH()
 		end
 		local bodyback = game:GetService('HttpService'):JSONDecode(request({
@@ -127,8 +124,8 @@ init = function()
 			val3 = true
 			val2 = false
 		else
-			warn('You are not whitelisted.')
-			return LPH_CRASH()
+			warn('Invalid key. [1]')
+			return nil
 		end
 		for _ = 1,math.random(1,3),1 do
 			local a,b,c = pcall(function()
@@ -156,21 +153,19 @@ init = function()
 				return back.Whitelisted, back.object
 			end)
 			if (a == false) or (b == true) or (b == nil) or (c == true) or (c == nil) then
-				warn('Detected.')
 				return LPH_CRASH()
 			end
 		end
 		if (val0 == false) or (val1 == false) or (val2 == true) or (val3 == false) or (val4 == true) or (val5 == false) then
-			warn('Detected.')
 			return LPH_CRASH()
 		end
 		mainScript()
 	elseif not request then
-		warn("Executor not supported.")
-		return LPH_CRASH()
+		warn("Executor not supported. [1]")
+		return nil
 	else
-		warn("Invalid key.")
-		return LPH_CRASH()
+		warn("Invalid key. [2]")
+		return nil
 	end
 end
 init()
