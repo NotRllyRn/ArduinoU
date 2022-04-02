@@ -62,15 +62,17 @@ local unload = (function()
 	end
 
 	return function()
-		ScreenGui:Destroy()
+		pcall(function()
+			ScreenGui:Destroy()
+		end)
 	end
 end)()
 
 UpdateStatus('universal loader')
 
 loadstring(game:HttpGet("https://raw.githubusercontent.com/NotRllyRn/Universal-loader/main/UniversalLoader.lua"))(true) --// get universal loader with useful functions
-UpdateStatus('ui library')
-library = loadstring(game:HttpGet("https://raw.githubusercontent.com/NotRllyRn/Universal-loader/main/GUILibs/Kavo.lua"))(true) --// get kavo ui library
+local library
+local notification
 
 local compare_save
 compare_save = function(s1, s2) --// compares and save settings
@@ -156,6 +158,7 @@ local Settings = { --// stores the default settings
 	},
 	AUTOFARM = { --// stores the auto farm settings
 		ON = false,
+		INDEX = nil,
 		DATA = nil, --// data for autofarm
 	},
 }
@@ -236,9 +239,17 @@ local finalize_ui = function(window, settings) --// finalizes the ui
 	UpdateStatus('done!')
 end
 
-for _, ta in pairs(games_scripts) do --// loops through the games table
+for index, ta in pairs(games_scripts) do --// loops through the games table
 	if ta.check() and not ta.Detected then --// checks if the game is detected and checks if its the valid game
 		cWrap(function() --// encases the code in a coroutine
+			if Settings.AUTOFARM.ON and Settings.AUTOFARM.INDEX == index and ta.autofarm then --// checks if autofarm is on
+				local autofarmData = Settings.AUTOFARM.DATA --// gets the autofarm data
+			end
+
+			UpdateStatus('ui libaries')
+			library = loadstring(game:HttpGet("https://raw.githubusercontent.com/NotRllyRn/Universal-loader/main/GUILibs/Kavo.lua"))(true) --// get kavo ui library
+			notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/NotRllyRn/Universal-loader/main/GUILibs/Notification.lua"))(true) --// get notification library
+
 			local Arduino = load_ui(Settings, ta.name) --// load ui
 			heartS:Wait()
 			UpdateStatus('main script')

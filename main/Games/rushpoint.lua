@@ -6,6 +6,47 @@ games_scripts = {
 			return (workspace:FindFirstChild('MapFolder') and workspace.MapFolder:FindFirstChild('Players') and localPlayer:FindFirstChild('PermanentTeam'))
 		end,
 		main = function(window, settings)
+			UpdateStatus('game settings')
+			local Settings = {
+				ESP_SETTINGS = {
+					tracers = false,
+					box = true,
+					aim = "humanoid",
+					on = true,
+					colors = {
+						sameTeam = { 0, 255, 0 },
+						otherTeam = { 255, 0, 0 },
+						aimed = {255, 255, 255}
+					},
+					keybind = 'E',
+					overide = false,
+				},
+				AIMBOT_SETTINGS = {
+					smooth = 4,
+					on = false,
+					distance = 250,
+					aim = "head",
+					keybind = 'T',
+					showaim = true,
+					visible = false,
+					aim_setting = 'closest to player',
+				},
+				CAMERA_SETTINGS = {
+					no_recoil = true,
+					no_shake = true,
+					no_spread = true,
+				},
+				MISC_SETTINGS = {
+					firerateOveride = false,
+					firerate = 0.1,
+					movement_speed = 1.4,
+				}
+			}
+			compare_save(Settings, settings.GAMES["5993942214"].SETTINGS)
+			settings.GAMES["5993942214"].SETTINGS = Settings
+			Settings = settings.GAMES["5993942214"].SETTINGS
+
+			UpdateStatus('game files')
 			local MapFolder = workspace.MapFolder
 			local GameFolder = MapFolder.GameStats
 			local PlayersFolder = MapFolder.Players
@@ -139,46 +180,6 @@ games_scripts = {
 				return local_table.inGame
 			end
 			checkGame()
-
-			UpdateStatus('game settings')
-			local Settings = {
-				ESP_SETTINGS = {
-					tracers = false,
-					box = true,
-					aim = "humanoid",
-					on = true,
-					colors = {
-						sameTeam = { 0, 255, 0 },
-						otherTeam = { 255, 0, 0 },
-						aimed = {255, 255, 255}
-					},
-					keybind = 'E',
-					overide = false,
-				},
-				AIMBOT_SETTINGS = {
-					smooth = 4,
-					on = false,
-					distance = 250,
-					aim = "head",
-					keybind = 'T',
-					showaim = true,
-					visible = false,
-					aim_setting = 'closest to player',
-				},
-				CAMERA_SETTINGS = {
-					no_recoil = true,
-					no_shake = true,
-					no_spread = true,
-				},
-				MISC_SETTINGS = {
-					firerateOveride = false,
-					firerate = 0.1,
-					movement_speed = 1.4,
-				}
-			}
-			compare_save(Settings, settings.GAMES["5993942214"].SETTINGS)
-			settings.GAMES["5993942214"].SETTINGS = Settings
-			Settings = settings.GAMES["5993942214"].SETTINGS
 
 			UpdateStatus('esp')
 
