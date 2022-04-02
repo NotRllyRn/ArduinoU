@@ -14,6 +14,20 @@ games_scripts = {
 				team = localPlayer.PermanentTeam.Value,
 				character = nil
 			}
+			local esp_table = {}
+			local insert_esp = function(esp)
+				table.insert(esp_table, esp)
+			end
+			local remove_esp = function(...)
+				for _, esp in ipairs({...}) do
+					for i, v in pairs(esp_table) do
+						if v == esp then
+							table.remove(esp_table, i)
+							break
+						end
+					end
+				end
+			end
 
 			local gameTable_Checks = {
 				Recoil = function(v)
@@ -65,10 +79,24 @@ games_scripts = {
 						return v.Bullets and v.Grenades and v.ReloadingValue and v.WeaponValue and v.AimOffset and v.LastSpringRecoilX and v.LastSpringRecoilY and v.PlayAnimation
 					end)
 				end,
+				CrosshairManager = function(v)
+					return pcall(function()
+						return v.TotalRecoilSpread and v.SpreadOffset and v.CurrentHitmarkerSpread and v.CurrentMovementSpread and v.CurrentRecoilSpread
+					end)
+				end
 			}
 
+			UpdateStatus('game scripts')
 			local gameTables = {}
+			local found = 0
+			local find = 0
+			for _,_ in pairs(gameTable_Checks) do
+				find = find + 1
+			end
 			for _, v in ipairs(getgc(true)) do
+				if found == find then
+					break
+				end
 				if v and type(v) == 'table' then
 					for name, check in pairs(gameTable_Checks) do
 						local s, r = check(v)
@@ -79,9 +107,21 @@ games_scripts = {
 								Copy = {}
 							}
 							copyOver(v, gameTables[name].Copy)
+							found = found + 1
 						end
 					end
 				end
+			end
+			local crash = false
+			for name, check in pairs(gameTable_Checks) do
+				print(gameTables[name])
+				if not gameTables[name] then
+					crash = true
+					warn('ERROR: could not find game script: ' .. name)
+				end
+			end
+			if crash then
+				error('Crashing script.')
 			end
 
 			wait(0.1)
@@ -100,6 +140,7 @@ games_scripts = {
 			end
 			checkGame()
 
+			UpdateStatus('game settings')
 			local Settings = {
 				ESP_SETTINGS = {
 					tracers = false,
@@ -139,6 +180,8 @@ games_scripts = {
 			settings.GAMES["5993942214"].SETTINGS = Settings
 			Settings = settings.GAMES["5993942214"].SETTINGS
 
+			UpdateStatus('esp')
+
 			local game_table = {}
 			local esp_run = function()
 				checkGame()
@@ -151,6 +194,7 @@ games_scripts = {
 							wait(1)
 							r1.Visible = false
 							r2.Visible = false
+							remove_esp(r1, r2)
 							r1:Remove()
 							r2:Remove()
 						end)
@@ -185,6 +229,8 @@ games_scripts = {
 								inGame = true,
 								aiming = false,
 							}
+							insert_esp(game_table[plr.Name].line)
+							insert_esp(game_table[plr.Name].box)
 						else
 							game_table[plr.Name].targets = {
 								humanoid = plr_Char.HumanoidRootPart,
@@ -256,6 +302,8 @@ games_scripts = {
 				end
 			end
 
+			UpdateStatus('aimbot')
+
 			local aimbot_run = function()
 				local distance = Settings.AIMBOT_SETTINGS.distance
 				if Settings.AIMBOT_SETTINGS.aim_setting == 'closest to player' then
@@ -306,6 +354,8 @@ games_scripts = {
 				end
 			end
 
+			UpdateStatus('mods')
+
 			local function noMods()
 				local addRecoil = gameTables.Camera.Raw.AddRecoil
 				gameTables.Camera.Raw.AddRecoil = function(...)
@@ -350,8 +400,22 @@ games_scripts = {
 					end
 					return AimOffset(...)
 				end
+				local CrosshairSpread = gameTables.CrosshairManager.Raw.UpdateCrosshair
+				function gameTables.CrosshairManager.Raw.UpdateCrosshair(...)
+					if Settings.CAMERA_SETTINGS.no_spread then
+						return nil
+					end
+					return CrosshairSpread(...)
+				end
 				if Settings.CAMERA_SETTINGS.no_spread then
 					gameTables.WeaponHandler.Raw.Offset = CFrame.new()
+					gameTables.CrosshairManager.Raw.SpreadOffset = 0
+					gameTables.CrosshairManager.Raw.TotalRecoilSpread = 0
+					gameTables.CrosshairManager.Raw.CurrentRecoilSpread = 0
+					gameTables.CrosshairManager.Raw.TotalMovementSpread = 0
+					gameTables.CrosshairManager.Raw.CurrentMovementSpread = 0
+					gameTables.CrosshairManager.Raw.TotalHitmarkerSpread = 0
+					gameTables.CrosshairManager.Raw.CurrentHitmarkerSpread = 0
 				end
 				if Settings.CAMERA_SETTINGS.no_recoil then
 					gameTables.WeaponHandler.Raw.LastSpringRecoilX = 0
@@ -428,6 +492,8 @@ games_scripts = {
 				end
 			end
 
+			UpdateStatus('esp page')
+
 			local page_esp = window:NewTab('Esp') do
 				local ESP = page_esp:NewSection('Main') do
 					local tog = ESP:NewToggle('Esp toggle', 'toggles esp on and off',Settings.ESP_SETTINGS.on, function(v)
@@ -464,6 +530,8 @@ games_scripts = {
 					end)
 				end
 			end
+
+			UpdateStatus('aimbot page')
 			local page_aimbot = window:NewTab('Aimbot') do
 				local AIMBOT = page_aimbot:NewSection('AIMBOT', true) do
 					local tog = AIMBOT:NewToggle('Aimbot toggle', 'toggles aimbot on and off',Settings.AIMBOT_SETTINGS.on, function(v)
@@ -495,6 +563,7 @@ games_scripts = {
 					end)
 				end
 			end
+			UpdateStatus('misc page')
 			local page_char = window:NewTab('Character') do
 				local CHAR = page_char:NewSection('CHARACTER', true) do
 					CHAR:NewSlider('Movement Speed', 'changes the movement speed of the character',Settings.MISC_SETTINGS.movement_speed*10,10,14, function(v)
@@ -547,6 +616,18 @@ games_scripts = {
 			noSpread()
 			updateFireRate()
 			updateSpeed()
+			cWrap(function()
+				while true do
+					wait(5)
+					for i,v in ipairs(esp_table) do
+						if v then
+							v.Visible = false
+						end
+					end
+				end
+			end)
+
+			UpdateStatus('game script finished')
 		end,
 	},
 }
