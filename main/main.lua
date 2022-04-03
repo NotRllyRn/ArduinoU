@@ -68,11 +68,23 @@ local unload = (function()
 	end
 end)()
 
+if _G.ArduinoCheck then
+	unload()
+	return error('Arduino is already running!', 0)
+end
+
 UpdateStatus('universal loader')
 
 loadstring(game:HttpGet("https://raw.githubusercontent.com/NotRllyRn/Universal-loader/main/UniversalLoader.lua"))(true) --// get universal loader with useful functions
 local library
 local notification
+
+cWrap(function()
+	while true do
+		heartS:Wait()
+		_G.ArduinoCheck = true
+	end
+end)
 
 local compare_save
 compare_save = function(s1, s2) --// compares and save settings
@@ -155,6 +167,10 @@ local Settings = { --// stores the default settings
 			NAME = "Rush Point",
 			SETTINGS = {},
 		},
+		['GPO'] = {
+			NAME = 'Grand Piece  Online',
+			SETTINGS = {},
+		}
 	},
 	AUTOFARM = { --// stores the auto farm settings
 		ON = false,
@@ -239,28 +255,41 @@ local finalize_ui = function(window, settings) --// finalizes the ui
 	UpdateStatus('done!')
 end
 
+local foundGame = false
+
 for index, ta in pairs(games_scripts) do --// loops through the games table
 	if ta.check() and not ta.Detected then --// checks if the game is detected and checks if its the valid game
 		cWrap(function() --// encases the code in a coroutine
-			if Settings.AUTOFARM.ON and Settings.AUTOFARM.INDEX == index and ta.autofarm then --// checks if autofarm is on
-				local autofarmData = Settings.AUTOFARM.DATA --// gets the autofarm data
+			foundGame = true
+			if Settings.AUTOFARM.ON and Settings.AUTOFARM.INDEX == index and ta.autofarm and Settings.AUTOFARM.DATA then --// checks if autofarm is on
+				ta.autofarm(Settings.AUTOFARM, notification) --// runs the autofarm
 			end
 
 			UpdateStatus('ui libaries')
 			library = loadstring(game:HttpGet("https://raw.githubusercontent.com/NotRllyRn/Universal-loader/main/GUILibs/Kavo.lua"))(true) --// get kavo ui library
 			notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/NotRllyRn/Universal-loader/main/GUILibs/Notification.lua"))(true) --// get notification library
 
-			local Arduino = load_ui(Settings, ta.name) --// load ui
-			heartS:Wait()
+			local Arduino = load_ui(Settings, ta.name) heartS:Wait() --// load ui
 			UpdateStatus('main script')
-			ta.main(Arduino, Settings) --// run main for the main part of the script
-			heartS:Wait()
+			ta.main(Arduino, Settings, notification) heartS:Wait() --// run main for the main part of the script
 			UpdateStatus('ui settings')
-			finalize_ui(Arduino, Settings) --// finalize ui
-			heartS:Wait()
-			wait(0.5)
-			unload() --// unloads the progress screen
+			finalize_ui(Arduino, Settings) heartS:Wait() --// finalize ui
+			wait(0.5) unload() --// unloads the progress screen
 		end)
 		break
 	end
+end
+
+if not foundGame then
+	unload()
+	notification:notify({
+		Title = "Unsupported Game",
+		Description = "The game you are playing is not supported by this script",
+		Accept = {
+			Text = "Okay",
+			Callback = function()
+			end,
+		},
+		Length = 10
+	})
 end
