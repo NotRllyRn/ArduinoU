@@ -206,6 +206,7 @@ games_scripts = {
 						players = {0, 0, 255},
 						hostile = {255, 0, 0},
 					},
+					drawdistance = 600,
 				},
 				autofarm = {
 					dragonfruit = {
@@ -241,14 +242,15 @@ games_scripts = {
 					no_stamina_dash = true,
 					walkspeedOveride = false,
 					walkspeed = 40,
+					walkonair = false,
 				},
 			}
 			compare_save(Settings, settings.GAMES["GPO"].SETTINGS)
-			settings.GAMES["GPO"].SETTINGS = Settings
 			Settings = settings.GAMES["GPO"].SETTINGS
 
 			idleAfk(true)
 
+			UpdateStatus('game mods')
 			local walkspeed
 			walkspeed = hookfunction(getrawmetatable(game).__index, function(...)
 				local self, data = ...
@@ -406,6 +408,91 @@ games_scripts = {
 				end
 			end
 
+			local function checkingameDF()
+				if Settings.autofarm.dragonfruit.gotof then
+					local return_vec = humanoidRP.Position
+					CheckandGotoDF()
+
+					if Settings.autofarm.dragonfruit.autopickup then
+						humanoidRP.Anchored = true
+
+						camera.CFrame = CFrame.new(camera.Position, fruit.preHandle.Position)
+						wait(0.1)
+						virtualIM:SendKeyEvent(true, Enum.KeyCode.LeftAlt, false, game)
+						wait(5)
+						virtualIM:SendKeyEvent(false, Enum.KeyCode.LeftAlt, true, game)
+
+						humanoidRP.Anchored = false
+
+						if Settings.autofarm.dragonfruit.gobacksafe then
+							wait(0.1)
+
+							tweento(Vector3.new(humanoidRP.Position.X, game_G.SeaLevel, humanoidRP.Position.Z)).Completed:Wait()
+							tweento(Vector3.new(return_vec.X, game_G.SeaLevel, return_vec.Y)).Completed:Wait()
+							tweento(return_vec).Completed:Wait()
+						end
+					end
+				end
+			end
+
+			local function startAutofarm()
+				local autofarmData = {
+					type = '',
+					webhook = Settings.autofarm.dragonfruit.webhook,
+					gotof = Settings.autofarm.dragonfruit.hopper.gotof,
+					autopickup = Settings.autofarm.dragonfruit.hopper.autopickup,
+					gobacksafe = Settings.autofarm.dragonfruit.hopper.gobacksafe,
+				}
+				notif:notify({
+					Title = 'You are about to start dragonfruit autofarm,',
+					Description = 'start autofarm? remember, _G.FARM = false to stop',
+					Accept = {
+						Text = 'Start',
+						Callback = function()
+							autofarmData.type = 'DragonFruit'
+							settings.AUTOFARM.DATA = autofarmData
+							settings.AUTOFARM.INDEX = 'GPO'
+							join(1730877806)
+						end,
+					},
+					Dismiss = {
+						Text = 'Cancel',
+						Callback = function()
+							_G.FARM = false
+							settings.AUTOFARM.ON = false
+						end,
+					}
+				})
+			end
+
+			local function testDiscordWebhook()
+				discordWebSend(Settings.autofarm.dragonfruit.webhook, {
+					username = 'Fruit Finder',
+					avatar_url = 'https://cdn.discordapp.com/attachments/900983183145840652/959907982441857054/unknown.png?size=4096',
+					embeds = {
+						{
+							type = 'rich',
+							title = 'GPO test message',
+							description = 'this is a test message',
+							color = 16767232,
+							fields = {
+								{
+									name = 'Test',
+									value = 'field test'
+								}
+							}
+						}
+					}
+				})
+			end
+
+			local function walkonair()
+				if Settings.character.walkonair then
+					
+				end
+			end
+
+			UpdateStatus('esp functions')
 			local espTable = {
 				dragonfruit = {},
 				npcs = {},
@@ -413,49 +500,288 @@ games_scripts = {
 				hostile = {},
 			}
 			local esp_run = function()
-				for i,v in ipairs(espTable.dragonfruit) do
-					if not v.target then
-						v.line.Visible = false
-						v.line:Remove()
+				for _,v in ipairs(workspace:GetChildren()) do
+					if v and v:IsA("Tool") and v:FindFirstChild("FruitEater") and v:FindFirstChild("Owner") then
+						if not table.find(espTable.dragonfruit, v) then
+							local info = {
+								text = Drawing.new('Text')
+							}
+							local old 
+							old = hookfunction(getrawmetatable(v).__index, function(...)
+								local self, data = select(1, ...)
+								if info[data] then
+									return info[data]
+								end
+								return old(...)
+							end)
+							table.insert(espTable.dragonfruit, v)
+						end
 					end
 				end
-				for i,v in ipairs(espTable.players) do
-					if not v.target then
-						v.line.Visible = false
-						v.line:Remove()
+				for _,v in ipairs(workspace.NPCs:GetChildren()) do
+					if v and v:FindFirstChild('Info') and v.Info:FindFirstChild('Hostile') and not v.Info.Hostile.Value and v:FindFirstChild('HumanoidRootPart') then
+						if not table.find(espTable.npcs, v) then
+							local info = {
+								line = (function()
+									local line = Drawing.new('Line')
+									line.From = Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y/2)
+									line.Thickness = 2
+									return line
+								end)(),
+								box = (function()
+									local box = Drawing.new('Quad')
+									box.Filled = false
+									box.Thickness = 2
+									return box
+								end)(),
+								text = (function()
+									local text = Drawing.new('Text')
+									text.Text = v.Name
+									text.Color = Color3.fromRGB(255,255,255)
+									text.OutlineColor = Color3.fromRGB(0,0,0)
+									text.Outline = true
+									return text
+								end)(),
+							}
+							local old
+							old = hookfunction(getrawmetatable(v).__index, function(...)
+								local self, data = select(1, ...)
+								if not (info[data] == nil) then
+									return info[data]
+								end
+								return old(...)
+							end)
+
+							table.insert(espTable.npcs, v)
+						end
+					elseif v and v:FindFirstChild('Info') and v.Info:FindFirstChild('Hostile') and v.Info.Hostile.Value and v:FindFirstChild('HumanoidRootPart') then
+						if not table.find(espTable.hostile, v) then
+							local info = {
+								line = (function()
+									local line = Drawing.new('Line')
+									line.From = Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y/2)
+									line.Thickness = 2
+									return line
+								end)(),
+								box = (function()
+									local box = Drawing.new('Quad')
+									box.Filled = false
+									box.Thickness = 2
+									return box
+								end)(),
+								text = (function()
+									local text = Drawing.new('Text')
+									text.Text = v.Name
+									text.Color = Color3.fromRGB(255,255,255)
+									text.OutlineColor = Color3.fromRGB(0,0,0)
+									text.Outline = true
+									return text
+								end)(),
+							}
+							local old
+							old = hookfunction(getrawmetatable(v).__index, function(...)
+								local self, data = select(1, ...)
+								if not (info[data] == nil) then
+									return info[data]
+								end
+								return old(...)
+							end)
+
+							table.insert(espTable.hostile, v)
+						end
+					end
+				end
+				for i,v in ipairs(workspace.PlayerCharacters:GetChildren()) do
+					if v and v:FindFirstChild('HumanoidRootPart') then
+						if not table.find(espTable.players, v) then
+							local info = {
+								line = (function()
+									local line = Drawing.new('Line')
+									line.From = Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y/2)
+									line.Thickness = 2
+									return line
+								end)(),
+								box = (function()
+									local box = Drawing.new('Quad')
+									box.Filled = false
+									box.Thickness = 2
+									return box
+								end)(),
+								text = (function()
+									local text = Drawing.new('Text')
+									text.Text = v.Name
+									text.Color = Color3.fromRGB(255,255,255)
+									text.OutlineColor = Color3.fromRGB(0,0,0)
+									text.Outline = true
+									return text
+								end)(),
+							}
+							local old
+							old = hookfunction(getrawmetatable(v).__index, function(...)
+								local self, data = select(1, ...)
+								if not (info[data] == nil) then
+									return info[data]
+								end
+								return old(...)
+							end)
+
+							table.insert(espTable.players, v)
+						end
+					end
+				end
+				for i,v in ipairs(espTable.dragonfruit) do
+					if not Settings.esp.dragonfruit or not Settings.esp.on then
+						return 
+					end
+
+					local text = v.text
+					local target = v.preHandle
+					local point = getPoint(target)
+
+					if point then
+						text.Position = point
+						text.Visible = true
+					else
+						text.Visible = false
 					end
 				end
 				for i,v in ipairs(espTable.hostile) do
-					if not v.target then
-						v.line.Visible = false
-						v.line:Remove()
+					if not Settings.esp.on or not Settings.esp.hostile then
+						return
 					end
+
+					local line = v.line
+					local box = v.box
+					local text = v.box
+					local target = v:FindFirstChild("HumanoidRootPart")
+					local point = getPoint(target)
+					local distance = target and (target.Position - humanoidRP.Position).magnitude
+
+					if point and distance and distance <= Settings.esp.drawdistance then
+						line.To = point
+						line.Visible = true
+
+						local TL = getPoint(target.Position * Vector3.new(-3, 3, 0), true)
+						local TR = getPoint(target.Position * Vector3.new(3, 3, 0), true)
+						local BL = getPoint(target.Position * Vector3.new(-3, -3, 0), true)
+						local BR = getPoint(target.Position * Vector3.new(3, -3, 0), true)
+
+						box.PointA = TL
+						box.PointB = TR
+						box.PointC = BR
+						box.PointD = BL
+						box.Visible = true
+
+						local textPoint = getPoint(target.Position * Vector3.new(0, 5, 0), true)
+						if textPoint then
+							text.Position = textPoint
+							text.Visible = true
+						else
+							text.Visible = false
+						end
+					else
+						line.Visible = false
+						box.Visible = false
+						text.Visible = false
+					end
+
+					line.Color = Color3.fromRGB(table.unpack(Settings.esp.colors.hostile))
+					box.Color = Color3.fromRGB(table.unpack(Settings.esp.colors.hostile))
 				end
-				for i,v in ipairs(workspace:GetChildren()) do
-					if v and v:IsA("Tool") and v:FindFirstChild("FruitEater") and v:FindFirstChild("Owner") then
-						local insert = {
-							target = v.preHandle,
-							line = Drawing.new('Line')
-						}
-						table.insert(espTable.dragonfruit, insert)
+				for i,v in ipairs(espTable.players) do
+					if not Settings.esp.on or not Settings.esp.players then
+						return
 					end
+
+					local line = v.line
+					local box = v.box
+					local text = v.box
+					local target = v:FindFirstChild("HumanoidRootPart")
+					local point = getPoint(target)
+					local distance = target and (target.Position - humanoidRP.Position).magnitude
+
+					if point and distance and distance <= Settings.esp.drawdistance then
+						line.To = point
+						line.Visible = true
+
+						local TL = getPoint(target.Position * Vector3.new(-3, 3, 0), true)
+						local TR = getPoint(target.Position * Vector3.new(3, 3, 0), true)
+						local BL = getPoint(target.Position * Vector3.new(-3, -3, 0), true)
+						local BR = getPoint(target.Position * Vector3.new(3, -3, 0), true)
+
+						box.PointA = TL
+						box.PointB = TR
+						box.PointC = BR
+						box.PointD = BL
+						box.Visible = true
+
+						local textPoint = getPoint(target.Position * Vector3.new(0, 5, 0), true)
+						if textPoint then
+							text.Position = textPoint
+							text.Visible = true
+						else
+							text.Visible = false
+						end
+					else
+						line.Visible = false
+						box.Visible = false
+						text.Visible = false
+					end
+
+					line.Color = Color3.fromRGB(table.unpack(Settings.esp.colors.players))
+					box.Color = Color3.fromRGB(table.unpack(Settings.esp.colors.players))
 				end
-				for i,v in ipairs(workspace.npcs:GetChildren()) do
-					if v and v:FindFirstChild('Info') and not v.Info.Hostile.Value then
-						local insert = {
-							target = v.target,
-							line = Drawing.new('Line')
-						}
-						table.insert(espTable.npcs, insert)
+				for i,v in ipairs(espTable.npcs) do
+					if not Settings.esp.on or not Settings.esp.npcs then
+						return
 					end
+
+					local line = v.line
+					local box = v.box
+					local text = v.box
+					local target = v:FindFirstChild("HumanoidRootPart")
+					local point = getPoint(target)
+					local distance = target and (target.Position - humanoidRP.Position).magnitude
+
+					if point and distance and distance <= Settings.esp.drawdistance then
+						line.To = point
+						line.Visible = true
+
+						local TL = getPoint(target.Position * Vector3.new(-3, 3, 0), true)
+						local TR = getPoint(target.Position * Vector3.new(3, 3, 0), true)
+						local BL = getPoint(target.Position * Vector3.new(-3, -3, 0), true)
+						local BR = getPoint(target.Position * Vector3.new(3, -3, 0), true)
+
+						box.PointA = TL
+						box.PointB = TR
+						box.PointC = BR
+						box.PointD = BL
+						box.Visible = true
+
+						local textPoint = getPoint(target.Position * Vector3.new(0, 5, 0), true)
+						if textPoint then
+							text.Position = textPoint
+							text.Visible = true
+						else
+							text.Visible = false
+						end
+					else
+						line.Visible = false
+						box.Visible = false
+						text.Visible = false
+					end
+
+					line.Color = Color3.fromRGB(table.unpack(Settings.esp.colors.npcs))
+					box.Color = Color3.fromRGB(table.unpack(Settings.esp.colors.npcs))
 				end
 			end
 
+			UpdateStatus('game ui')
 			local autofarm_page = window:NewTab('Auto Farm') do
 				local dragonfruit = autofarm_page:NewSection('Dragonfruit (ingame)') do
 					dragonfruit:NewLabel('dragon fruit farm for ingame (no hop)')
 					local tog
-					tog = dragonfruit:NewToggle('autofarm', 'goes to dragon fruit, picks it up, and tries to store it.',Settings.autofarm.dragonfruit.ingame, function(v)
+					tog = dragonfruit:NewToggle('autofarm', 'goes to dragon fruit, picks it up, and tries to store it.',Settings.autofarm.dragonfruit.ingame.on, function(v)
 						Settings.autofarm.dragonfruit.ingame = v
 						if not ingamerunning then
 							ingameFruitFarm(tog)
@@ -470,43 +796,20 @@ games_scripts = {
 						local fruit = checkDF()
 						if fruit then
 							found:UpdateLabel('Status: found ' .. fruit.Name)
-							if Settings.autofarm.dragonfruit.gotof then
-								local return_vec = humanoidRP.Position
-								CheckandGotoDF()
-
-								if Settings.autofarm.dragonfruit.autopickup then
-									humanoidRP.Anchored = true
-
-									camera.CFrame = CFrame.new(camera.Position, fruit.preHandle.Position)
-									wait(0.1)
-									virtualIM:SendKeyEvent(true, Enum.KeyCode.LeftAlt, false, game)
-									wait(5)
-									virtualIM:SendKeyEvent(false, Enum.KeyCode.LeftAlt, true, game)
-
-									humanoidRP.Anchored = false
-
-									if Settings.autofarm.dragonfruit.gobacksafe then
-										wait(0.1)
-	
-										tweento(Vector3.new(humanoidRP.Position.X, game_G.SeaLevel, humanoidRP.Position.Z)).Completed:Wait()
-										tweento(Vector3.new(return_vec.X, game_G.SeaLevel, return_vec.Y)).Completed:Wait()
-										tweento(return_vec).Completed:Wait()
-									end
-								end
-							end
+							checkingameDF()
 						else
 							found:UpdateLabel('Status: not found')
 							wait(3)
 							found:UpdateLabel('Status: nil')
 						end
 					end)
-					dragonfruit:NewToggle('Go to dragonfruit', 'tweens to dragonfruit if it finds one',Settings.dragonfruit.gotof, function(v)
+					dragonfruit:NewToggle('Go to dragonfruit', 'tweens to dragonfruit if it finds one',Settings.autofarm.dragonfruit.checker.gotof, function(v)
 						Settings.dragonfruit.gotof = v
 					end)
-					dragonfruit:NewToggle('Auto pickup', 'automatically picks up dragonfruit if found', Settings.dragonfruit.autopickup, function(v)
+					dragonfruit:NewToggle('Auto pickup', 'automatically picks up dragonfruit if found', Settings.autofarm.dragonfruit.checker.autopickup, function(v)
 						Settings.dragonfruit.autopickup = v
 					end)
-					dragonfruit:NewToggle('Go back to spawn', 'tweens back to spawn after picking up dragon fruit', Settings.dragonfruit.gobacksafe, function(v)
+					dragonfruit:NewToggle('Go back to spawn', 'tweens back to spawn after picking up dragon fruit', Settings.autofarm.dragonfruit.checker.gobacksafe, function(v)
 						Settings.dragonfruit.gobacksafe = v
 					end)
 				end
@@ -521,33 +824,7 @@ games_scripts = {
 						settings.AUTOFARM.ON = v
 						_G.FARM = v
 						if v then
-							local autofarmData = {
-								type = '',
-								webhook = Settings.autofarm.dragonfruit.webhook,
-								gotof = Settings.autofarm.dragonfruit.hopper.gotof,
-								autopickup = Settings.autofarm.dragonfruit.hopper.autopickup,
-								gobacksafe = Settings.autofarm.dragonfruit.hopper.gobacksafe,
-							}
-							notif:notify({
-								Title = 'You are about to start dragonfruit autofarm,',
-								Description = 'start autofarm? remember, _G.FARM = false to stop',
-								Accept = {
-									Text = 'Start',
-									Callback = function()
-										autofarmData.type = 'DragonFruit'
-										settings.AUTOFARM.DATA = autofarmData
-										settings.AUTOFARM.INDEX = 'GPO'
-										join(1730877806)
-									end,
-								},
-								Dismiss = {
-									Text = 'Cancel',
-									Callback = function()
-										_G.FARM = false
-										settings.AUTOFARM.ON = false
-									end,
-								}
-							})
+							startAutofarm()
 						end
 					end)
 					dragonfruit:NewTextBox('Webhook (discord)', 'pings @everyone and tells you what fruit it found',Settings.autofarm.dragonfruit.webhook, function(v)
@@ -558,24 +835,7 @@ games_scripts = {
 					end)
 					dragonfruit:NewButton('Test webhook', 'test webhook for discord', function()
 						if not (autofarmData.webhook == '') then
-							discordWebSend(autofarmData.webhook, {
-								username = 'Fruit Finder',
-								avatar_url = 'https://cdn.discordapp.com/attachments/900983183145840652/959907982441857054/unknown.png?size=4096',
-								embeds = {
-									{
-										type = 'rich',
-										title = 'GPO test message',
-										description = 'this is a test message',
-										color = 16767232,
-										fields = {
-											{
-												name = 'Test',
-												value = 'field test'
-											}
-										}
-									}
-								}
-							})
+							testDiscordWebhook()
 						end
 					end)
 				end
@@ -612,6 +872,9 @@ games_scripts = {
 					espSection:NewToggle('Hostile','enable and disables the esp for hostile', Settings.esp.hostile, function(v)
 						Settings.esp.hostile = v
 					end)
+					espSection:NewSlider('Draw distance', 'the distance it has to be within to draw it', Settings.esp.drawdistance, 200, 10000, function(v)
+						Settings.esp.drawdistance = v
+					end)
 				end
 				local colorsection = esp_page:NewSection('Colors') do
 					colorsection:NewColorPicker('Dragonfruit', 'esp color for dragonfruit', Color3.fromRGB(table.unpack(Settings.esp.colors.dragonfruit)), function(c)
@@ -628,6 +891,16 @@ games_scripts = {
 					end)
 				end
 			end
+
+			renderS:Connect(function()
+				local s,e = pcall(function()
+					-- esp_run()
+				end)
+				if not s then
+					print(e)
+				end
+			end)
+			updateWalkSpeed()
 		end,
 	},
 }

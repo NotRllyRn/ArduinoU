@@ -86,26 +86,21 @@ cWrap(function()
 	end
 end)
 
+UpdateStatus('loader functions')
 local compare_save
-compare_save = function(s1, s2) --// compares and save settings
-	heartS:Wait()
-	for name, v in pairs(s1) do --// loops through first table
-		if not s2[name] then --// checks if table has the name already
-			s2[name] = v --// if not, add it
-		elseif s2[name] and type(s2[name]) == "table" and v and type(v) == "table" then --// if it does, check if it's a table
-			compare_save(v, s2[name]) --// if it is, compare and save
-		end
-		s1[name] = s2[name] --// set the value to the saved value so they equal
-	end
-	heartS:Wait()
-	for name, v in pairs(s2) do --// do the same thing above with the 2nd set
-		if not s1[name] then
-			s1[name] = v
-		elseif s1[name] and type(s1[name]) == "table" and v and type(v) == "table" then
-			compare_save(v, s1[name])
-		end
-	end
-	heartS:Wait()
+compare_save = function(t1, t2) 
+    for i, v in pairs(t1) do
+        if v and not t2[i] then
+            if type(v) == 'table' then
+                t2[i] = {}
+                compare_save(v, t2[i])
+            else
+                t2[i] = v
+            end
+        elseif v and type(v) == 'table' and type(t2[i]) == 'table' then
+            compare_save(v, t2[i])
+        end
+    end
 end
 
 local loadSettings = function(settings) --// loads the settings from the workspace folder
@@ -115,7 +110,9 @@ local loadSettings = function(settings) --// loads the settings from the workspa
 			inputt = JSONDecode(readfile("Arduino/saved.json")) --// loads the file
 		end)
 		if s then --// if file loaded successfully
+			UpdateStatus('input settings')
 			compare_save(settings, inputt) --// compare and save it
+			settings = inputt --// set the settings to the loaded settings
 		else --// if not
 			local inputt = JSONEncode(settings) --// encode the settings
 			writefile("Arduino/saved.json", inputt) --// write the file with the encoded settings
@@ -129,11 +126,8 @@ end
 
 local saveSettings = function(settings) --// saves the settings to the workspace folder
 	if isfolder("Arduino") and isfile("Arduino/saved.json") then --// checks if folder exist and file exist
-		local inputt --// creates a variable to store the settings
-		local s = pcall(function() --// tries to load the file
-			inputt = JSONEncode(settings) --// loads the file
-		end)
-		if s then --// if file loaded successfully
+		local inputt = JSONEncode(settings) --// encode the settings
+		if inputt then --// if file loaded successfully
 			writefile("Arduino/saved.json", inputt) --// write the file with the encoded settings
 		else
 			return false
@@ -145,6 +139,7 @@ local saveSettings = function(settings) --// saves the settings to the workspace
 	end
 end
 
+UpdateStatus('game table')
 local games_scripts --// stores the games scripts
 games_scripts = {
 	
@@ -179,6 +174,7 @@ local Settings = { --// stores the default settings
 	},
 }
 
+UpdateStatus('settings')
 loadSettings(Settings) --// loads the settings
 
 local load_ui = function(settings, name) --// loads the ui
@@ -262,7 +258,7 @@ for index, ta in pairs(games_scripts) do --// loops through the games table
 		cWrap(function() --// encases the code in a coroutine
 			foundGame = true
 			if Settings.AUTOFARM.ON and Settings.AUTOFARM.INDEX == index and ta.autofarm and Settings.AUTOFARM.DATA then --// checks if autofarm is on
-				ta.autofarm(Settings.AUTOFARM, notification) --// runs the autofarm
+				ta.autofarm(Settings.AUTOFARM) --// runs the autofarm
 			end
 
 			UpdateStatus('ui libaries')
