@@ -1,3 +1,4 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/NotRllyRn/Universal-loader/main/UniversalLoader.lua"))(true)
 local function click()
 	virtualIM:SendMouseButtonEvent(0, 0, 0, true, game, 0)
 	virtualIM:SendMouseButtonEvent(0, 0, 0, false, game, 0)
@@ -12,23 +13,27 @@ local function to(pos)
 	return tween
 end
 
-local npcs = workspace.NPCs:GetChildren()
+local npcs = workspace.NPCs
 local punch = true
+local punched = false
+local firstclick = false
+local waiting = false
 
-spawn(function()
-	while true do
-		heartS:Wait()
-		for i = 1, 50 do
-			game:GetService("ReplicatedStorage").Events.Block:InvokeServer({
-				true,
-				"Melee",
-			})
-			heartS:Wait()
-		end
-		game:GetService("ReplicatedStorage").Events.Block:InvokeServer({
-			false,
-			"Melee"
-		})
+local val
+
+replicatedS.Events.disableMovement.OnClientEvent:Connect(function(v)
+	print("punched", v)
+	val = genName()
+	punched = v
+	firstclick = false
+	if v then
+		local val2 = val
+		cWrap(function()
+			wait(3)
+			if val2 == val then
+				punched = false
+			end
+		end)
 	end
 end)
 
@@ -47,8 +52,9 @@ old = hookfunction(getrawmetatable(game).__namecall, function(...)
 		if data and type(data) == "table" and data[3] and type(data[3]) == "number" then
 			if data[3] == 5 then
 				spawn(function()
+				    firstclick = false
 					punch = false
-					wait(4)
+					wait(3)
 					punch = true
 				end)
 			end
@@ -62,36 +68,96 @@ if localPlayer.Backpack:FindFirstChild("Melee") then
 	humanoid:EquipTool(localPlayer.Backpack.Melee)
 end
 
-for _, target in pairs(npcs) do
-	if target then
+local valid = {}
+
+for _, target in pairs(npcs:GetChildren()) do
+	if target and target:FindFirstChild('Info') and target.Info:FindFirstChild('Hostile') and target.Info.Hostile.Value then
+		table.insert(valid, {
+			target = target,
+			distance = (target.HumanoidRootPart.Position - humanoidRP.Position).Magnitude,
+		})
+	end
+end
+
+table.sort(valid, function(a, b)
+	return a.distance < b.distance
+end)
+
+local target = table.remove(valid, 1)
+
+local killtarget
+function killtarget(target)
+	local target = target.target
+	if target and target:FindFirstChild('Info') and target.Info:FindFirstChild('Hostile') and target.Info.Hostile.Value then
 		to(
 			Vector3.new(
 				humanoidRP.Position.X,
-				target.HumanoidRootPart.Position.Y - 7,
+				target.HumanoidRootPart.Position.Y - 10,
 				humanoidRP.Position.Z
 			)
 		).Completed:Wait()
-		to(target.HumanoidRootPart.Position + Vector3.new(0, -7, 0)).Completed:Wait()
+		to(target.HumanoidRootPart.Position + Vector3.new(0, -10, 0)).Completed:Wait()
+		local yPos = target.HumanoidRootPart.Position.Y - 10
 		repeat
-			if punch then
+			if punch and not punched then
 				click()
+				if not firstclick and not waiting then
+				    waiting = true
+				    cWrap(function()
+        				wait(0.05)
+        				firstclick = true
+        				waiting = false
+        			end)
+    			end
 			end
 			heartS:Wait()
-			if punch then
+			if punch and not punched and firstclick then
 				humanoidRP.CFrame = CFrame.new(
-					target.HumanoidRootPart.Position + Vector3.new(0, -4, 0),
-					target.HumanoidRootPart.Position + Vector3.new(0, 10, 0)
+					target.HumanoidRootPart.CFrame * Vector3.new(0, 0, 2.5),
+					target.HumanoidRootPart.Position
 				)
 			else
 				humanoidRP.CFrame = CFrame.new(
-					target.HumanoidRootPart.Position + Vector3.new(0, -7, 0),
+					Vector3.new(
+						target.HumanoidRootPart.Position.X,
+						yPos,
+						target.HumanoidRootPart.Position.Z
+					),
 					target.HumanoidRootPart.Position + Vector3.new(0, 10, 0)
 				)
 			end
 			humanoidRP.Velocity = Vector3.new()
-		until not target or not (target:FindFirstChild("HumanoidRootPart"))
+		until not target or not (target:FindFirstChild("HumanoidRootPart")) or not target:FindFirstChild('Humanoid') or not target.Parent or target.Humanoid.Health <= 0 
+	
+		wait(0.5)
+
+		local valid2 = {}
+		for _, target in ipairs(npcs:GetChildren()) do
+			if target and target:FindFirstChild('Info') and target.Info:FindFirstChild('Hostile') and target.Info.Hostile.Value and target.Info.Target.Value == localPlayer then
+				table.insert(valid2, {
+					target = target,
+					distance = (target.HumanoidRootPart.Position - humanoidRP.Position).Magnitude,
+				})
+			end
+		end
+
+		if #valid2 > 0 then
+			table.sort(valid2, function(a, b)
+				return a.distance < b.distance
+			end)
+			killtarget(valid2[1])
+		elseif #valid > 0 then
+			table.sort(valid, function(a, b)
+				return a.distance < b.distance
+			end)
+			killtarget(table.remove(valid, 1))
+		else
+			print('done')
+		end
 	end
 end
+killtarget(target)
+
 
 games_scripts = {
 	["GPO"] = {
