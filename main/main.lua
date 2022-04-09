@@ -114,7 +114,7 @@ local loadSettings = function(settings) --// loads the settings from the workspa
 			compare_save(settings, inputt) --// compare and save it
 			settings = inputt --// set the settings to the loaded settings
 		else --// if not
-			local inputt = JSONEncode(settings) --// encode the settings
+			local inpu  MWK02tt = JSONEncode(settings) --// encode the settings
 			writefile("Arduino/saved.json", inputt) --// write the file with the encoded settings
 		end
 	else
