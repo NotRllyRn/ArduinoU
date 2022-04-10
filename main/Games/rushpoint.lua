@@ -1,11 +1,14 @@
 games_scripts = {
-	["5993942214"] = {
+	["RP"] = {
 		name = 'Rush Point',
 		Detected = false,
 		check = function()
 			return (workspace:FindFirstChild('MapFolder') and workspace.MapFolder:FindFirstChild('Players') and localPlayer:FindFirstChild('PermanentTeam'))
 		end,
 		main = function(window, settings)
+			while uni.charLoading do
+				heartS:Wait()
+			end
 			UpdateStatus('game settings')
 			local Settings = {
 				ESP_SETTINGS = {
@@ -42,9 +45,9 @@ games_scripts = {
 					movement_speed = 1.4,
 				}
 			}
-			compare_save(Settings, settings.GAMES["5993942214"].SETTINGS)
-			settings.GAMES["5993942214"].SETTINGS = Settings
-			Settings = settings.GAMES["5993942214"].SETTINGS
+			compare_save(Settings, settings.GAMES["RP"].SETTINGS)
+			settings.GAMES["RP"].SETTINGS = Settings
+			Settings = settings.GAMES["RP"].SETTINGS
 
 			UpdateStatus('game files')
 			local MapFolder = workspace.MapFolder

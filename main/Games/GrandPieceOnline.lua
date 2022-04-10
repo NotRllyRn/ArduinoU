@@ -173,6 +173,9 @@ games_scripts = {
 					data.AUTOFARM = false
 					return
 				end
+				while uni.charLoading do
+					heartS:Wait()
+				end
 				local autofarmTypes = {
 					DragonFruit = function(data)
 						if (game.PlaceId == 1730877806) then
@@ -258,6 +261,9 @@ games_scripts = {
 			end
 		end,
 		main = function(window, settings, notif)
+			while uni.charLoading do
+				heartS:Wait()
+			end
 			UpdateStatus('game settings')
 			local Settings = {
 				esp = {

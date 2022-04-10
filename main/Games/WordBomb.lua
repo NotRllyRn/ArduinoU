@@ -1,12 +1,12 @@
 games_scripts = {
-	["WordBomb"] = {
+	["WB"] = {
 		name = 'Word Bomb',
 		Detected = false,
 		check = function()
 			return replicatedS:FindFirstChild("Postie") and replicatedS:FindFirstChild("Network") and replicatedS:FindFirstChild("Products") and replicatedS:FindFirstChild("GameAssets")
 		end,
 		main = function(window, settings)
-            local self = settings.GAMES["WordBomb"].SETTINGS
+            local self = settings.GAMES["WB"].SETTINGS
             local Settings = {
                 speed = {
                     wpm = 140,
@@ -16,7 +16,7 @@ games_scripts = {
                 autotype = false,
                 longest = false,
                 autotype_delay = true,
-                word_length = 35,
+                word_length = 10,
                 auto_mistakes = true,
                 human_like = true,
                 type_speed_variation = true,
@@ -29,6 +29,14 @@ games_scripts = {
             
             local comms = replicatedS.Network.Games.GameEvent
 
+            local labels = {
+                Found = nil,
+                Id = nil,
+                gameType = nil,
+                ingame = nil,
+                word = nil,
+            }
+
             local playerStats = {
                 ingame = false,
                 currentgame = nil,
@@ -37,15 +45,53 @@ games_scripts = {
             local typing = false
 
             local WORD_LIST = {}
-            local worddoc = httpRequest({
-                Url = 'https://raw.githubusercontent.com/YoungsterGlenn/bpDictionaryStatistics/master/dictionary.txt'
-            }).Body
-            for i,v in ipairs(worddoc:split('\n')) do
-                table.insert(WORD_LIST, v:lower())
+            LPH_JIT_ULTRA(function()
+                local worddoc = httpRequest({
+                    Url = 'https://raw.githubusercontent.com/YoungsterGlenn/bpDictionaryStatistics/master/dictionary.txt'
+                }).Body
+                for i,v in ipairs(worddoc:split('\n')) do
+                    table.insert(WORD_LIST, v:lower())
+                end
+                table.sort(WORD_LIST, function(a,b)
+                    return a:len() > b:len()
+                end)
+            end)()
+            local WORD_LIST = copyOver(WORD_LIST)
+
+            local function updateLabels(found, word)
+				if labels.word == nil then return end
+
+                if playerStats.ingame then
+                    labels.ingame:UpdateLabel('In Game: true')
+                else
+                    labels.ingame:UpdateLabel('In Game: false')
+                end
+                if word then
+                    labels.word:UpdateLabel('Word: '..word:upper())
+				else
+                    labels.word:UpdateLabel('Word: ')
+                end
+
+                if found == true then
+                    labels.Found:UpdateLabel('Found game!')
+                    labels.Id:UpdateLabel('ID: '.. playerStats.currentgame.gamef.GameID)
+                    labels.gameType:UpdateLabel('Game Type: '.. playerStats.currentgame.gametype)
+                elseif found == false then
+                    labels.Found:UpdateLabel('No game found')
+                    labels.Id:UpdateLabel('ID: ')
+                    labels.gameType:UpdateLabel('Game Type: ')
+                else
+                    if playerStats.currentgame then
+                        labels.Found:UpdateLabel('Found game!')
+                        labels.Id:UpdateLabel('ID: '.. playerStats.currentgame.gamef.GameID)
+                        labels.gameType:UpdateLabel('Game Type: '.. playerStats.currentgame.gametype)
+                    else
+                        labels.Found:UpdateLabel('No game found')
+                        labels.Id:UpdateLabel('ID: ')
+                        labels.gameType:UpdateLabel('Game Type: ')
+                    end
+                end
             end
-            table.sort(WORD_LIST, function(a,b)
-                return a:len() > b:len()
-            end)
 
             local function getGame(v)
                 local main
@@ -66,7 +112,7 @@ games_scripts = {
 
                 if gamef and main then
                     local returnee = {
-                        type = gamef.Game,
+                        gametype = gamef.Game,
                         gamef = gamef,
                         main = main,
                     }
@@ -74,6 +120,7 @@ games_scripts = {
                         returnee.arena = main:GetArena()
                         returnee.words_available = copyOver(WORD_LIST)
                     end
+                    updateLabels(true)
                     return returnee
                 end
                 
@@ -107,6 +154,7 @@ games_scripts = {
                     end
                     word = valid[math.random(1,#valid)]
                 end
+                updateLabels(nil, word)
                 return word
             end
 
@@ -144,23 +192,22 @@ games_scripts = {
                 end
             end
 
-            local function typeSequence(sequence, speed, box)
+            local function typeSequence(sequence, speed, box, overide)
                 local sequence = (sequence and (type(sequence) == 'table') and sequence) or (sequence and (type(sequence) == 'string') and sequence:split(''))
 
                 for _,v in pairs(sequence) do
                     if not typing then return end
-                    if self.auto_mistakes and math.random(1,25) == 8 then
+                    if not overide and self.auto_mistakes and math.random(1,25) == 8 then
                         typeMistake(v, speed, box)
-                    else
-                        box.Text = box.Text .. v:upper()
-                        if self.type_speed_variation and math.random(1,5) == 3 then
-                            wait(60/((self.speed.wpm + math.random(-10, 10)) * 5))
-                        else
-                            wait(speed)
-                        end
-                    end
-                end
+					end
 
+					box.Text = box.Text .. v:upper()
+					if not overide and self.type_speed_variation and math.random(1,5) == 3 then
+						wait(60/((self.speed.wpm + math.random(-10, 10)) * 5))
+					else
+						wait(speed)
+					end
+                end
             end
 
             local function typeWord(word, gamef) 
@@ -173,6 +220,11 @@ games_scripts = {
                     end
 
                     if not typing then return end
+
+                    if self.speed.instant_type then
+                        typeSequence(word:split(''), 0, typebox, true)
+                        return
+                    end
 
                     if self.human_like then
                         local graph = {}
@@ -218,7 +270,7 @@ games_scripts = {
                 local index = arena.PossessorIndex
                 if bypass or (index == playerStats.index) then
                     local word = getWord(currentgame.words_available, prompt or arena.Prompt)
-                    if word then
+                    if word and not typing then
                         typing = true; typeWord(word, currentgame.gamef) heartS:Wait()
                         enter(currentgame.gamef, word) typing = false
 
@@ -230,6 +282,7 @@ games_scripts = {
             end
 
             local function checkInGame(arena)
+                updateLabels()
                 if not arena or not arena.Players then return false end
                 for i,v in pairs(arena.Players) do
                     if tostring(v) == tostring(localPlayer.UserId) then
@@ -241,9 +294,9 @@ games_scripts = {
             end
 
             local function setupGame()
-                if playerStats.currentgame.gamef then
+                if playerStats.currentgame.gamef and playerStats.currentgame.gametype == 'WordBomb' and playerStats.ingame then
                     playerStats.currentgame.gamef.Events.ChangePossessor.Event:Connect(function(_, index, prompt)
-                        if tostring(index) == tostring(playerStats.index) then
+                        if tostring(index) == tostring(playerStats.index) and self.autotype then
                             gameTypeWord(playerStats.currentgame, true, prompt)
                         else
                             typing = false
@@ -251,8 +304,10 @@ games_scripts = {
                     end)
     
                     playerStats.currentgame.gamef.Events.MistakeEvent.Event:Connect(function()
-                        playerStats.currentgame.gamef.UI.GameContainer.DesktopContainer.Typebar.Typebox.Text = ''
-                        gameTypeWord(playerStats.currentgame)
+                        if self.autotype then
+                            playerStats.currentgame.gamef.UI.GameContainer.DesktopContainer.Typebar.Typebox.Text = ''
+                            gameTypeWord(playerStats.currentgame)
+                        end
                     end)
 
                     playerStats.currentgame.gamef.Events.TypingEvent.Event:Connect(function(_, word, enter)
@@ -262,25 +317,84 @@ games_scripts = {
                         end
                     end)
                 end
+                updateLabels()
             end
 
             localPlayer.PlayerScripts.ClientGameScript.Games.ChildAdded:Connect(function(v)
                 wait(0.1)
                 playerStats.currentgame = getGame(v)
-                if playerStats.currentgame and playerStats.type == 'WordBomb' then
+                if playerStats.currentgame and playerStats.currentgame.gametype == 'WordBomb' then
                     playerStats.ingame = checkInGame(playerStats.currentgame.arena)
                     setupGame()
-                else
+					gameTypeWord(playerStats.currentgame)
+                elseif self.autojoin then
                     joinGame(playerStats.currentgame.gamef)
+					updateLabels()
                 end
             end)
 
             playerStats.currentgame = getGame()
             playerStats.ingame = checkInGame(playerStats.currentgame.arena)
-            setupGame()
+			if playerStats.currentgame and not playerStats.currentgame.arena then
+				joinGame(playerStats.currentgame.gamef)
+			end
+			
+			setupGame()
 
-            getgenv().type1 = function()
-                gameTypeWord(playerStats.currentgame)
+            local stats_tab = window:NewTab('Ingame Stats') do
+                local stats_section = stats_tab:NewSection('Ingame Stats', true) do
+                    labels.Found = stats_section:NewLabel('No game found')
+                    labels.Id = stats_section:NewLabel('Id: ')
+                    labels.gameType = stats_section:NewLabel('Game Type: ')
+                    labels.ingame = stats_section:NewLabel('In Game: ')
+                    labels.word = stats_section:NewLabel('Word: ')
+
+                    updateLabels()
+
+					stats_section:NewButton('Type Word', 'types out a word for you', function()
+						gameTypeWord(playerStats.currentgame)
+					end)
+                end
+            end
+            local auto_tab = window:NewTab('Auto-Stuff') do
+                local auto_section = auto_tab:NewSection('Auto-Stuff', true) do
+                    auto_section:NewToggle('AutoType', 'Automatically types a word for you', self.autotype, function(v)
+                        self.autotype = v
+                    end)
+                    auto_section:NewToggle('AutoMistakes', 'Automatically makes mistakes when automatically typing out a word', self.auto_mistakes, function(v)
+                        self.auto_mistakes = v
+                    end)
+                    auto_section:NewToggle('AutoJoin', 'Automatically joins a game when a new game is made', self.autojoin, function(v)
+                        self.autojoin = v
+                    end)
+                end
+                local autoSettings_section = auto_tab:NewSection('Auto Settings') do
+                    autoSettings_section:NewToggle('Human Like', 'Automatically types words in a human like manner', self.human_like, function(v)
+                        self.human_like = v
+                    end)
+                    autoSettings_section:NewToggle('Speed Variation', 'Automatically makes the speed of typing vary', self.type_speed_variation, function(v)
+                        self.type_speed_variation = v
+                    end)
+                    autoSettings_section:NewToggle('AutoType delay', 'Waits a random amount of time before autotyping', self.autotype_delay, function(v)
+                        self.autotype_delay = v
+                    end)
+                end
+            end
+            local word_tab = window:NewTab('Speed') do
+                local word_section = word_tab:NewSection('Word-Stuff', true) do
+                    word_section:NewSlider('WPM', 'Words per minute', self.speed.wpm, 20, 300, function(speed)
+                        self.speed.wpm = speed
+                    end)
+                    word_section:NewSlider('Word length', 'change the word length you want it to find and type', self.word_length, 5, 35, function(length)
+                        self.word_length = length
+                    end)
+                    word_section:NewToggle('Longest word', 'Decides if it types a longest word or a random one', self.longest_word, function(v)
+                        self.longest_word = v
+                    end)
+                    word_section:NewToggle('Instant Type', 'Types words instantly', self.speed.instant_type, function(v)
+                        self.speed.instant_type = v
+                    end)
+                end
             end
 		end,
 	},

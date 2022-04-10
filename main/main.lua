@@ -75,7 +75,7 @@ end
 
 UpdateStatus('universal loader')
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/NotRllyRn/Universal-loader/main/UniversalLoader.lua"))(true) --// get universal loader with useful functions
+local uni = loadstring(game:HttpGet("https://raw.githubusercontent.com/NotRllyRn/Universal-loader/main/UniversalLoader.lua"))(true) --// get universal loader with useful functions
 local library
 local notification
 
@@ -110,11 +110,11 @@ local loadSettings = function(settings) --// loads the settings from the workspa
 			inputt = JSONDecode(readfile("Arduino/saved.json")) --// loads the file
 		end)
 		if s then --// if file loaded successfully
-			UpdateStatus('input settings')
+			UpdateStatus('json file')
 			compare_save(settings, inputt) --// compare and save it
 			settings = inputt --// set the settings to the loaded settings
 		else --// if not
-			local inpu  MWK02tt = JSONEncode(settings) --// encode the settings
+			local inputt = JSONEncode(settings) --// encode the settings
 			writefile("Arduino/saved.json", inputt) --// write the file with the encoded settings
 		end
 	else
@@ -158,12 +158,16 @@ local Settings = { --// stores the default settings
 		OPEN_CLOSE = "RightShift", --// stores the open/close key
 	},
 	GAMES = { --// stores the available games
-		["5993942214"] = {
+		["RP"] = {
 			NAME = "Rush Point",
 			SETTINGS = {},
 		},
 		['GPO'] = {
 			NAME = 'Grand Piece  Online',
+			SETTINGS = {},
+		},
+		['WB'] = {
+			NAME = 'Word Bomb',
 			SETTINGS = {},
 		}
 	},
@@ -262,8 +266,8 @@ for index, ta in pairs(games_scripts) do --// loops through the games table
 			end
 
 			UpdateStatus('ui libaries')
-			library = loadstring(game:HttpGet("https://raw.githubusercontent.com/NotRllyRn/Universal-loader/main/GUILibs/Kavo.lua"))(true) --// get kavo ui library
-			notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/NotRllyRn/Universal-loader/main/GUILibs/Notification.lua"))(true) --// get notification library
+			library = libraryLoad('kavo', true) --// get kavo ui library
+			notification = libraryLoad('notification') --// get notification library
 
 			local Arduino = load_ui(Settings, ta.name) heartS:Wait() --// load ui
 			UpdateStatus('main script')
