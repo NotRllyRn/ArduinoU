@@ -58,7 +58,6 @@ const expressCommands = {
     },
     whitelist: async function (req, res) {
         const hwid = getHWID(req)
-        console.log(req.headers, hwid)
         const uuid = await validUUID(req.body.uuid)
         const key = req.body.key
 
