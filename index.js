@@ -187,7 +187,6 @@ const discordCommands = {
             } else {
                 msg.channel.send('Failed to generate key.')
             };
-            return res.send({})
         });
     },
     buy: function (msg) {
