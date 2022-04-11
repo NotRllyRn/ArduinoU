@@ -97,8 +97,6 @@ const expressCommands = {
     transaction: function (req, res) {
         const content = req.body;
 
-        console.log(content)
-
         if (!fromTebex(req)) return res.send({});
         if (content.type === 'validation.webhook') return res.send({ id: content.id });
         if ((content.type === 'payment.completed') && (content.subject.status.description === 'Complete')) {
