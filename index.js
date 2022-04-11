@@ -269,12 +269,14 @@ const discordCommands = {
         if (!role) return msg.reply('Role not found.');
 
         if (check == 'all') {
-            const members = await dServer.members.cache.filter(member => !member.roles.cache.find(r => r == role))
-            await Promise.all(members.map(async member => {
-                await member.roles.add(role);
-            }));
-            msg.reply('Added roles.');
-
+            dServer.members.fetch().then(async members => {
+                await Promise.all(members.map(async member => {
+                    if (!member.roles.cache.some(r => r.id === role.id)) {
+                        await member.roles.add(role);
+                    }
+                }));
+                msg.reply('Added roles.');
+            })
         } else {
             await Promise.all(msg.mentions.members.map(async member => {
                 await member.roles.add(role);
