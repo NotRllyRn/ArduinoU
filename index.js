@@ -31,7 +31,7 @@ function fromTebex(req) {
     } else return false;
 }
 function getHWID(req) {
-    const headers = ["Syn-Fingerprint", "Krnl-Hwid"];
+    const headers = ["Syn-Fingerprint", "Krnl-Hwid", "syn-fingerprint"];
     for (let i = 0; i < headers.length; i++) {
         if (req.headers[headers[i]]) {
             return req.headers[headers[i]];
