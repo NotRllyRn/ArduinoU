@@ -31,7 +31,7 @@ function fromTebex(req) {
     } else return false;
 }
 function getHWID(req) {
-    const headers = ["syn-fingerprint", "Krnl-Hwid"];
+    const headers = ["Syn-Fingerprint", "Krnl-Hwid"];
     for (let i = 0; i < headers.length; i++) {
         if (req.headers[headers[i]]) {
             return req.headers[headers[i]];
@@ -57,6 +57,7 @@ const expressCommands = {
     },
     whitelist: async function (req, res) {
         const hwid = getHWID(req)
+        console.log(req.headers, hwid)
         const uuid = await validUUID(req.body.uuid)
         const key = req.body.key
 
