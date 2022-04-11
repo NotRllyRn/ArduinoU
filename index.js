@@ -17,8 +17,9 @@ const __dirname = dirname(__filename);
 let dServer
 let ImpChannel
 let wChannel
+let dmsChannel
 
-const whitelistedUsers = { '422587947972427777': true }
+const DiscordAllowed = { '422587947972427777': true }
 const botChannels = { '937807785293389855': true, '937808046028107777': true }
 const executeScript = '```lua' + `\nloadstring(game:HttpGet('https://arduinou.herokuapp.com/execute', true))()` + '```'
 
@@ -112,7 +113,7 @@ const expressCommands = {
                     'yaris-authentication': process.env.YARISKEY
                 },
             }).then(res => res.json()).then(json => {
-                if (json.information) {
+                if (json.information && json.information.success) {
                     const key = json.information.additional.key
                     const script = '```lua' + `\nloadstring(game:HttpGet("https://arduinou.herokuapp.com/getwhitelist", true))("` + key + `", "` + uuid + `")\n` + '```'
                     dServer.members.fetch(uuid).then((member) => {
@@ -164,8 +165,169 @@ client.on('ready', () => {
     dServer = client.guilds.cache.get('936358880907255839');
     ImpChannel = client.channels.cache.get('933071691184230400');
     wChannel = client.channels.cache.get('933071643637612554');
+    dmsChannel = client.channels.cache.get('936361136947859516');
 
     console.log('Arduino on top i guess')
+})
+
+const discordCommands = {
+    generateKey: async function (msg, args) {
+        if (!DiscordAllowed[msg.author.id]) return msg.reply('Unauthorized.');
+        const uuid = args[0] || '';
+
+        fetch('https://api.yaris.rocks/v1/addkey', {
+            method: 'POST',
+            headers: {
+                'yaris-authentication': process.env.YARISKEY
+            },
+        }).then(res => res.json()).then(json => {
+            if (json.information && json.information.success) {
+                const key = json.information.additional.key
+                const script = '```lua' + `\nloadstring(game:HttpGet("https://arduinou.herokuapp.com/getwhitelist", true))("` + key + `", "` + uuid + `")\n` + '```'
+                msg.channel.send(script)
+            } else {
+                msg.channel.send('Failed to generate key.')
+            };
+            return res.send({})
+        });
+    },
+    buy: function (msg) {
+        if (!botChannels[msg.channel.id.toString()]) {
+            msg.delete();
+            return msg.channel.send('<@' + msg.author.id + '> Please use bot commands in bot channels.').then(message => {
+                setTimeout(function () {
+                    message.delete();
+                }, 5000);
+            })
+        }
+
+        msg.channel.send('https://arduino.tebex.io/package/4920033/')
+    },
+    getrole: function (msg) {
+        if (msg.channel.type == 'DM') return msg.reply('Use this command in the guild.');
+        if (!botChannels[msg.channel.id.toString()]) {
+            msg.delete();
+            return msg.channel.send('<@' + msg.author.id + '> Please use bot commands in bot channels.').then(message => {
+                setTimeout(function () {
+                    message.delete();
+                }, 5000);
+            })
+        }
+
+        if (msg.member.roles.cache.some(r => r.id === '936359030849417278')) {
+            msg.reply(`You already have Buyer role.`);
+        } else {
+            fetch('https://api.yaris.rocks/v1/getuser/' + msg.author.id.toString().trim(), {
+                method: 'POST',
+                headers: {
+                    'yaris-authentication': process.env.YARISKEY
+                },
+            }).then(res => res.json()).then(async json => {
+                if (json.information && json.information.success) {
+                    if (json.information.additional.key) {
+                        const role = await dServer.roles.cache.find(r => r.id === '936359030849417278');
+
+                        msg.member.roles.add(role).then(() => {
+                            msg.reply(`Added.`);
+                        });
+                    } else {
+                        msg.reply(`You are not whitelisted.`);
+                    }
+                } else {
+                    msg.reply(`Yaris getuser failed.`);
+                };
+            })
+        }
+    },
+    getscript: function (msg) {
+        if (!botChannels[msg.channel.id.toString()] && !(msg.channel.type == 'DM')) {
+            msg.delete();
+            return msg.channel.send('<@' + msg.author.id + '> Please use bot commands in bot channels.').then(message => {
+                setTimeout(function () {
+                    message.delete();
+                }, 5000);
+            });
+        }
+        msg.author.send(executeScript).catch(() => {
+            dmsChannel.send('<@' + msg.author.id.toString().trim() + '> Enable your dms and use ``;getscript``.');
+        });
+    },
+    role: async function (msg, args) {
+        if (!botChannels[msg.channel.id.toString()]) {
+            msg.delete();
+            return msg.channel.send('<@' + msg.author.id + '> Please use bot commands in bot channels.').then(message => {
+                setTimeout(function () {
+                    if (message.deletable) message.delete();
+                }, 5000);
+            })
+        }
+        if (!DiscordAllowed[msg.author.id]) return msg.reply('Unauthorized.');
+        if (!args || args.length < 2) return msg.reply('You need an userid and roleid');
+
+        const check = args[1];
+        const role = dServer.roles.cache.find(r => r.id === args[0]);
+
+        if (!role) return msg.reply('Role not found.');
+
+        if (check == 'all') {
+            dServer.members.filter(member => {
+                return !member.roles.cache.find(role);
+            }).then(async members => {
+                await Promise.all(members.map(async member => {
+                    await member.roles.add(role);
+                }));
+                msg.reply('Added roles.');
+            })
+        } else {
+            await Promise.all(msg.mentions.members.map(async member => {
+                await member.roles.add(role);
+            }));
+            msg.reply('Added roles.')
+        }
+    },
+    verify: function (msg) {
+        if (msg.channel.id == '936429814464794694') {
+            msg.member.roles.add(dServer.roles.cache.find(r => r.id === '936428694833098774'));
+        } else {
+            msg.channel.send('Already verified dumbass.').then(message => {
+                setTimeout(() => {
+                    if (message.deletable) message.delete();
+                }, 5000);
+            })
+        }
+    },
+    help: function (msg) {
+        if (!botChannels[msg.channel.id.toString()]) {
+            msg.delete();
+            return msg.channel.send('<@' + msg.author.id + '> Please use bot commands in bot channels.').then(message => {
+                setTimeout(function () {
+                    if (message.deletable) message.delete();
+                }, 5000);
+            })
+        }
+        msg.reply('commands:\n```;getscript\n;buy\n;help\n;getrole```');
+    },
+    ping: function (msg) {
+        return msg.channel.send('no').then(message => {
+            setTimeout(function () {
+                message.delete();
+            }, 5000);
+        })
+    }
+}
+
+client.on('messageCreate', (msg) => {
+    if (msg.author.bot) return;
+    const content = msg.content;
+    if (content.startsWith(process.env.PREFIX)) {
+        const [name, ...messages] = content.trim().substring(process.env.PREFIX.length).split(" ");
+        const args = [msg]
+        if (messages.length > 0) args.push(messages);
+        if (discordCommands[name]) discordCommands[name](...args);
+    }
+    if (msg.channel.id == '936429814464794694' && msg.deletable) {
+        msg.delete();
+    }
 })
 
 client.login(process.env.TOKEN);
