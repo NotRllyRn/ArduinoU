@@ -1,5 +1,5 @@
 local Incoming = { ... }
-local client = game:GetService("Players"):WaitForChild("LocalPlayer")
+local client = game:GetService("Players").LocalPlayer
 if not client then
     return warn('wtf where is your player?')
 end
