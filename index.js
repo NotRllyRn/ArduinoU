@@ -32,11 +32,11 @@ function fromTebex(req) {
 }
 function getHWID(req) {
     const headers = ["Syn-Fingerprint", "Krnl-Hwid"];
-    headers.forEach(header => {
-        if (req.headers[header]) {
-            return req.headers[header]
+    for (let i = 0; i < headers.length; i++) {
+        if (req.headers[headers[i]]) {
+            return req.headers[headers[i]];
         }
-    })
+    }
 }
 async function validUUID(uuid) {
     if (!uuid) return false;
@@ -164,7 +164,7 @@ client.on('ready', () => {
     ImpChannel = client.channels.cache.get('933071691184230400');
     wChannel = client.channels.cache.get('933071643637612554');
 
-    console.log('Discord good')
+    console.log('Arduino on top i guess')
 })
 
 client.login(process.env.TOKEN);
