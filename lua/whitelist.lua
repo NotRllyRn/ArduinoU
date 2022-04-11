@@ -31,9 +31,9 @@ else
 		if not success then
             return client:Kick("[ERROR] " .. body)
         elseif body.error then
-            return client:Kick("[ERROR] " .. Body.error)
+            return client:Kick("[ERROR] " .. body.error)
         else
-            return client:Kick("[Whitelist] " .. Body.message)
+            return client:Kick("[Whitelist] " .. body.message)
         end 
 	end
 end

