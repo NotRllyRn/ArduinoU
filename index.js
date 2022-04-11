@@ -102,7 +102,7 @@ const expressCommands = {
         if (content.type === 'validation.webhook') return res.send({ id: content.id });
         if ((content.type === 'payment.completed') && (content.subject.status.description === 'Complete')) {
             const productid = content.subject.products[0].id;
-            if (!productid || !(productid == 5054240)) return res.send({});
+            if (!productid || !(productid == 4920033)) return res.send({});
             const tbxid = content.subject.transaction_id;
             const uuid = content.subject.customer.username.id.toString().trim();
 
