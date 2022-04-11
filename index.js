@@ -124,6 +124,7 @@ const expressCommands = {
                 } else {
                     ImpChannel.send(`${uuid}, ` + tbxid + `: failed to generate yaris key.`)
                 };
+                return res.send({})
             });
         }
     },
