@@ -40,7 +40,7 @@ function getHWID(req) {
 }
 async function validUUID(uuid) {
     if (!uuid) return false;
-    await dServer.members.fetch(uuid.toString().trim()).then(() => {
+    return await dServer.members.fetch(uuid.toString().trim()).then(() => {
         return uuid.toString().trim()
     }).catch(() => {
         return false
