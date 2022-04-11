@@ -15,7 +15,7 @@ else
 		return client:Kick("[ERROR] unsupported executor.")
 	else
 		local success, body = pcall(function()
-			httpservice:JSONDecode(request({
+			return httpservice:JSONDecode(request({
 				Url = "https://arduinou.herokuapp.com/whitelist/",
 				Method = "POST",
 				Headers = {
