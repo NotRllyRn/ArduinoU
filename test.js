@@ -1,14 +1,16 @@
-function getHWID(req) {
-    const headers = ["Syn-Fingerprint", "Krnl-Hwid"];
-    for (let i = 0; i < headers.length; i++) {
-        if (req.headers[headers[i]]) {
-            return req.headers[headers[i]];
-        }
-    }
+// a function that sleeps for a given amount of time
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-console.log(getHWID({
-    headers: {
-        "Syn-Fingerprint": 'HI'
-    }
-}));
+
+async function validUUID(uuid) {
+    if (!uuid) return false;
+    return await sleep(5000).then(() => {
+        return uuid.toString().trim()
+    }).catch(() => {
+        return false
+    });
+}
+
+console.log(await validUUID('a'))
