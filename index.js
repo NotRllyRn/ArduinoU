@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import fetch from 'node-fetch';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import express from 'express';
 import { Client } from 'discord.js'
 import fs from 'fs';
@@ -8,6 +10,9 @@ const client = new Client({
     intents: ['GUILDS', 'DIRECT_MESSAGES', 'GUILD_MESSAGES', 'GUILD_MEMBERS'],
     partials: ['MESSAGE', 'CHANNEL']
 });
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 let dServer
 let ImpChannel
@@ -33,9 +38,9 @@ function getHWID(req) {
         }
     })
 }
-function checkValid(uuid) {
+async function validUUID(uuid) {
     if (!uuid) return false;
-    dServer.members.fetch(uuid.toString().trim()).then(() => {
+    await dServer.members.fetch(uuid.toString().trim()).then(() => {
         return uuid.toString().trim()
     }).catch(() => {
         return false
@@ -50,9 +55,9 @@ const expressCommands = {
     getwhitelist: function (_, res) {
         res.send(fs.readFileSync('./lua/whitelist.lua', 'utf8'));
     },
-    whitelist: function (req, res) {
+    whitelist: async function (req, res) {
         const hwid = getHWID(req)
-        const uuid = checkValid(req.body.uuid)
+        const uuid = await validUUID(req.body.uuid)
         const key = req.body.key
 
         if (!hwid) return res.send({ error: 'unsupported exploit' })
