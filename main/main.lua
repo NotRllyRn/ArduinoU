@@ -90,7 +90,7 @@ UpdateStatus('loader functions')
 local compare_save
 compare_save = function(t1, t2) 
     for i, v in pairs(t1) do
-        if v and not t2[i] then
+        if not (v == nil) and not t2[i] then
             if type(v) == 'table' then
                 t2[i] = {}
                 compare_save(v, t2[i])
@@ -110,17 +110,18 @@ local loadSettings = function(settings) --// loads the settings from the workspa
 			inputt = JSONDecode(readfile("Arduino/saved.json")) --// loads the file
 		end)
 		if s then --// if file loaded successfully
-			UpdateStatus('json file')
 			compare_save(settings, inputt) --// compare and save it
-			settings = inputt --// set the settings to the loaded settings
+			return inputt
 		else --// if not
 			local inputt = JSONEncode(settings) --// encode the settings
 			writefile("Arduino/saved.json", inputt) --// write the file with the encoded settings
+		    return inputt
 		end
 	else
 		makefolder("Arduino") --// if not, make the folder
 		local inputt = JSONEncode(settings) --// encode the settings
 		writefile("Arduino/saved.json", inputt) --// write the file with the encoded settings
+	    return inputt
 	end
 end
 
@@ -179,7 +180,7 @@ local Settings = { --// stores the default settings
 }
 
 UpdateStatus('settings')
-loadSettings(Settings) --// loads the settings
+Settings = loadSettings(Settings) --// loads the settings
 
 local load_ui = function(settings, name) --// loads the ui
 	heartS:Wait()
