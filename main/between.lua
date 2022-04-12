@@ -792,6 +792,7 @@ games_scripts = {
                     speed = 60 / (140*5),
                     instant_type = false,
                 },
+                mistake_chance = 8,
                 autotype = false,
                 longest = false,
                 autotype_delay = true,
@@ -937,6 +938,10 @@ games_scripts = {
                 return word
             end
 
+            local function getChance(chance)
+                return chance <= math.random(1,100)
+            end
+
             local function typeMistake(avoid, speed, box)
                 local original = box.Text:split('')
                 local text = box.Text
@@ -979,7 +984,7 @@ games_scripts = {
 
                 for _,v in pairs(sequence) do
                     if not typing then return end
-                    if not overide and self.auto_mistakes and math.random(1,25) == 8 then
+                    if not overide and self.auto_mistakes and getChance(self.mistake_chance) then
                         typeMistake(v, speed, box)
 					end
 
