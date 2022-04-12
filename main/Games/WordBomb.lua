@@ -160,6 +160,7 @@ games_scripts = {
 
             local function typeMistake(avoid, speed, box)
                 local original = box.Text:split('')
+                local text = box.Text
 
                 local times = math.random(1,3)
                 for _ = 1,times do
@@ -170,7 +171,8 @@ games_scripts = {
                         char = string.char(math.random(65,90))
                     end
 
-                    box.Text = box.Text .. char
+                    text = text .. char
+                    box.Text = text
                     table.insert(original, char)
                     if self.type_speed_variation and math.random(1,5) == 3 then
                         wait(60/((self.speed.wpm + math.random(-10, 10)) * 5))
@@ -194,6 +196,7 @@ games_scripts = {
 
             local function typeSequence(sequence, speed, box, overide)
                 local sequence = (sequence and (type(sequence) == 'table') and sequence) or (sequence and (type(sequence) == 'string') and sequence:split(''))
+                local text = box.Text
 
                 for _,v in pairs(sequence) do
                     if not typing then return end
@@ -201,7 +204,8 @@ games_scripts = {
                         typeMistake(v, speed, box)
 					end
 
-					box.Text = box.Text .. v:upper()
+					text = text .. v:upper()
+                    box.Text = text
 					if not overide and self.type_speed_variation and math.random(1,5) == 3 then
 						wait(60/((self.speed.wpm + math.random(-10, 10)) * 5))
 					else
@@ -363,6 +367,9 @@ games_scripts = {
                     end)
                     auto_section:NewToggle('AutoMistakes', 'Automatically makes mistakes when automatically typing out a word', self.auto_mistakes, function(v)
                         self.auto_mistakes = v
+                    end)
+                    auto_section:NewSlider('Mistake Chance', 'The chance of making a mistake when automatically typing out a word', self.mistake_chance, 1, 80, function(v)
+                        self.mistake_chance = v
                     end)
                     auto_section:NewToggle('AutoJoin', 'Automatically joins a game when a new game is made', self.autojoin, function(v)
                         self.autojoin = v
