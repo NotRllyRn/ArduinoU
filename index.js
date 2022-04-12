@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
-import fetch from 'node-fetch';
+import Yaris from 'yaris-wrapper';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import express from 'express';
@@ -10,6 +10,7 @@ const client = new Client({
     intents: ['GUILDS', 'DIRECT_MESSAGES', 'GUILD_MESSAGES', 'GUILD_MEMBERS'],
     partials: ['MESSAGE', 'CHANNEL']
 });
+const yaris = new Yaris(process.env.YARISKEY);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -65,29 +66,15 @@ const expressCommands = {
         if (!key) return res.send({ error: 'no key provided' })
         if (!uuid) return res.send({ error: 'invalid uuid' })
 
-        fetch('https://api.yaris.rocks/v1/removekey', {
-            method: 'POST',
-            headers: {
-                'yaris-authentication': process.env.YARISKEY
-            },
-            body: JSON.stringify({
-                key: key
-            })
-        }).then(res => res.json()).then(json => {
-            if (json.information && json.information.success) {
-                fetch('https://api.yaris.rocks/v1/adduser', {
-                    method: 'POST',
-                    headers: {
-                        'yaris-authentication': process.env.YARISKEY
-                    },
-                    body: JSON.stringify({
-                        tag: uuid,
-                        data: hwid,
-                        expires: '',
-                        role: 'user'
-                    })
-                }).then(res => res.json()).then(json => {
-                    if (json.information && json.information.success) {
+        yaris.removeKey(key).then(info => {
+            if (info && info.success) {
+                yaris.adduser({
+                    tag: uuid,
+                    data: hwid,
+                    expires: '',
+                    role: 'user'
+                }).then(info => {``
+                    if (info && info.success) {
                         res.send({ message: 'successfully whitelisted.' })
                         wChannel.send(`${uuid} has been whitelisted. [HWID]`)
                     } else return res.send({ error: 'yaris broke idk dm PancakeCat#0715' })
@@ -106,14 +93,9 @@ const expressCommands = {
             const tbxid = content.subject.transaction_id;
             const uuid = content.subject.customer.username.id.toString().trim();
 
-            fetch('https://api.yaris.rocks/v1/addkey', {
-                method: 'POST',
-                headers: {
-                    'yaris-authentication': process.env.YARISKEY
-                },
-            }).then(res => res.json()).then(json => {
-                if (json.information && json.information.success) {
-                    const key = json.information.additional.key
+            yaris.addKey().then(info => {
+                if (info && info.success) {
+                    const key = info.additional.key
                     const script = '```lua' + `\nloadstring(game:HttpGet("https://arduinou.herokuapp.com/getwhitelist", true))("` + key + `", "` + uuid + `")\n` + '```'
                     dServer.members.fetch(uuid).then((member) => {
                         member.send('Thank you for buying Arduino, execute this script in any game to be whitelisted.\n' + script).catch(() => {
@@ -174,15 +156,11 @@ const discordCommands = {
         if (!DiscordAllowed[msg.author.id]) return msg.reply('Unauthorized.');
         const uuid = args[0] || '';
 
-        fetch('https://api.yaris.rocks/v1/addkey', {
-            method: 'POST',
-            headers: {
-                'yaris-authentication': process.env.YARISKEY
-            },
-        }).then(res => res.json()).then(json => {
-            if (json.information && json.information.success) {
-                const key = json.information.additional.key
+        yaris.addKey().then(info => {
+            if (info && info.success) {
+                const key = info.additional.key
                 const script = '```lua' + `\nloadstring(game:HttpGet("https://arduinou.herokuapp.com/getwhitelist", true))("` + key + `", "` + uuid + `")\n` + '```'
+                
                 msg.channel.send(script)
             } else {
                 msg.channel.send('Failed to generate key.')
@@ -215,24 +193,19 @@ const discordCommands = {
         if (msg.member.roles.cache.some(r => r.id === '936359030849417278')) {
             msg.reply(`You already have Buyer role.`);
         } else {
-            fetch('https://api.yaris.rocks/v1/getuser/' + msg.author.id.toString().trim(), {
-                method: 'POST',
-                headers: {
-                    'yaris-authentication': process.env.YARISKEY
-                },
-            }).then(res => res.json()).then(async json => {
-                if (json.information && json.information.success) {
-                    if (json.information.additional.key) {
+            yaris.getUser(msg.author.id.toString().trim()).then(async info => {
+                if (info && info.success) {
+                    if (!info.additional.blacklisted) {
                         const role = await dServer.roles.cache.find(r => r.id === '936359030849417278');
 
                         msg.member.roles.add(role).then(() => {
-                            msg.reply(`Added.`);
+                            msg.reply(`Buyer role added.`);
                         });
                     } else {
                         msg.reply(`You are not whitelisted.`);
                     }
                 } else {
-                    msg.reply(`Yaris getuser failed.`);
+                    msg.reply(`Could not find your info.`);
                 };
             })
         }
