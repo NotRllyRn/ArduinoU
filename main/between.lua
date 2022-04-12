@@ -792,6 +792,7 @@ games_scripts = {
                     speed = 60 / (140*5),
                     instant_type = false,
                 },
+				mistake_chance = 8,
                 autotype = false,
                 longest = false,
                 autotype_delay = true,
@@ -804,7 +805,7 @@ games_scripts = {
             }
 
             compare_save(Settings, self)
-            self = Settings
+            Settings = self
             
             local comms = replicatedS.Network.Games.GameEvent
 
@@ -937,6 +938,10 @@ games_scripts = {
                 return word
             end
 
+			local function getChance(chance)
+				return chance <= math.random(1,100)
+			end
+
             local function typeMistake(avoid, speed, box)
                 local original = box.Text:split('')
 
@@ -976,7 +981,7 @@ games_scripts = {
 
                 for _,v in pairs(sequence) do
                     if not typing then return end
-                    if not overide and self.auto_mistakes and math.random(1,25) == 8 then
+                    if not overide and self.auto_mistakes and getChance(self.mistake_chance) then
                         typeMistake(v, speed, box)
 					end
 
@@ -1163,6 +1168,7 @@ games_scripts = {
                 local word_section = word_tab:NewSection('Word-Stuff', true) do
                     word_section:NewSlider('WPM', 'Words per minute', self.speed.wpm, 20, 300, function(speed)
                         self.speed.wpm = speed
+                        self.speed.speed = 60 / (speed * 5)
                     end)
                     word_section:NewSlider('Word length', 'change the word length you want it to find and type', self.word_length, 5, 35, function(length)
                         self.word_length = length

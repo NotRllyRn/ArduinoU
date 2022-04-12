@@ -47,7 +47,6 @@ games_scripts = {
 			}
 			compare_save(Settings, settings.GAMES["RP"].SETTINGS)
 			settings.GAMES["RP"].SETTINGS = Settings
-			Settings = settings.GAMES["RP"].SETTINGS
 
 			UpdateStatus('game files')
 			local MapFolder = workspace.MapFolder

@@ -318,7 +318,7 @@ games_scripts = {
 				},
 			}
 			compare_save(Settings, settings.GAMES["GPO"].SETTINGS)
-			Settings = settings.GAMES["GPO"].SETTINGS
+			settings.GAMES["GPO"].SETTINGS = Settings 
 
 			idleAfk(true)
 
