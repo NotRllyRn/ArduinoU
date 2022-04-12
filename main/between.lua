@@ -939,7 +939,7 @@ games_scripts = {
             end
 
             local function getChance(chance)
-                return chance <= math.random(1,100)
+                return math.random(1,100) <= chance
             end
 
             local function typeMistake(avoid, speed, box)
@@ -1152,14 +1152,14 @@ games_scripts = {
                     auto_section:NewToggle('AutoMistakes', 'Automatically makes mistakes when automatically typing out a word', self.auto_mistakes, function(v)
                         self.auto_mistakes = v
                     end)
-                    auto_section:NewSlider('Mistake Chance', 'The chance of making a mistake when automatically typing out a word', self.mistake_chance, 1, 80, function(v)
-                        self.mistake_chance = v
-                    end)
                     auto_section:NewToggle('AutoJoin', 'Automatically joins a game when a new game is made', self.autojoin, function(v)
                         self.autojoin = v
                     end)
                 end
                 local autoSettings_section = auto_tab:NewSection('Auto Settings') do
+					autoSettings_section:NewSlider('Mistake Chance', 'The chance of making a mistake when automatically typing out a word', self.mistake_chance, 1, 80, function(v)
+                        self.mistake_chance = v
+                    end)
                     autoSettings_section:NewToggle('Human Like', 'Automatically types words in a human like manner', self.human_like, function(v)
                         self.human_like = v
                     end)
