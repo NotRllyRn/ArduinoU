@@ -25,7 +25,7 @@ games_scripts = {
             }
 
             compare_save(Settings, self)
-            self = Settings
+            Settings = self
             
             local comms = replicatedS.Network.Games.GameEvent
 
@@ -384,6 +384,7 @@ games_scripts = {
                 local word_section = word_tab:NewSection('Word-Stuff', true) do
                     word_section:NewSlider('WPM', 'Words per minute', self.speed.wpm, 20, 300, function(speed)
                         self.speed.wpm = speed
+                        self.speed.speed = 60 / (speed * 5)
                     end)
                     word_section:NewSlider('Word length', 'change the word length you want it to find and type', self.word_length, 5, 35, function(length)
                         self.word_length = length
