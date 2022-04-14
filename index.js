@@ -73,7 +73,7 @@ const expressCommands = {
                     data: hwid,
                     expires: '',
                     role: 'user'
-                }).then(info => {``
+                }).then(info => {
                     if (info && info.success) {
                         res.send({ message: 'successfully whitelisted.' })
                         wChannel.send(`${uuid} has been whitelisted. [HWID]`)
