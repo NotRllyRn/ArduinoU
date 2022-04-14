@@ -68,7 +68,7 @@ const expressCommands = {
 
         yaris.removeKey(key).then(info => {
             if (info && info.success) {
-                yaris.adduser({
+                yaris.addUser({
                     tag: uuid,
                     data: hwid,
                     expires: '',
