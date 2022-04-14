@@ -291,7 +291,7 @@ const discordCommands = {
 	    if (!DiscordAllowed[msg.author.id]) return msg.reply('Unauthorized.');
         const tag = args[0] || '';
         
-        yaris.removeUser(tag.trim()).then(data => {
+        yaris.removeUser({ tag: tag.trim() }).then(data => {
 	        if (data.success) {
 		        msg.reply("successfully removed user.")
 	        } else {
