@@ -286,6 +286,18 @@ const discordCommands = {
                 message.delete();
             }, 5000);
         })
+    },
+    removeUser: function(msg, args) {
+	    if (!DiscordAllowed[msg.author.id]) return msg.reply('Unauthorized.');
+        const tag = args[0] || '';
+        
+        yaris.removeUser(tag.trim()).then(data => {
+	        if (data.success) {
+		        msg.reply("successfully removed user.")
+	        } else {
+		        msg.reply(data.error)
+	        }
+        })
     }
 }
 
