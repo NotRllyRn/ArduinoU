@@ -243,7 +243,7 @@ const discordCommands = {
         if (check == 'all') {
             dServer.members.fetch().then(async members => {
                 await Promise.all(members.map(async member => {
-                    if (!member.roles.cache.some(r => r.id === role.id)) {
+                    if (!member.roles.cache.some(r => r === role)) {
                         await member.roles.add(role);
                     }
                 }));
@@ -251,7 +251,9 @@ const discordCommands = {
             })
         } else {
             await Promise.all(msg.mentions.members.map(async member => {
-                await member.roles.add(role);
+                if (!member.roles.cache.some(r => r === role)) {
+                    await member.roles.add(role);
+                }
             }));
             msg.reply('Added roles.')
         }
