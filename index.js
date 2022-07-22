@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import express from 'express';
 import { Client } from 'discord.js'
-import fs from 'fs'; 
+import fs from 'fs';
 const client = new Client({
     intents: ['GUILDS', 'DIRECT_MESSAGES', 'GUILD_MESSAGES', 'GUILD_MEMBERS'],
     partials: ['MESSAGE', 'CHANNEL']
