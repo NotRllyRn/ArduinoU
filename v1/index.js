@@ -4,7 +4,7 @@ const crypto = require("crypto");
 const mysql = require('mysql');
 const express = require('express');
 const { Client } = require('discord.js');
-const fs = require('fs');
+const fs = require('fs'); 
 const client = new Client({
     intents: ['GUILDS', 'DIRECT_MESSAGES', 'GUILD_MESSAGES', 'GUILD_MEMBERS'],
     partials: ['MESSAGE', 'CHANNEL']
