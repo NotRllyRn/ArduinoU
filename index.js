@@ -13,7 +13,7 @@ const client = new Client({
 const yaris = new Yaris(process.env.YARISKEY);
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = dirname(__filename); 
 
 let dServer
 let ImpChannel
