@@ -81,7 +81,7 @@ const expressCommands = {
                 })
             } else return res.send({ error: 'invalid key' })
         })
-    },
+    }, 
     transaction: function (req, res) {
         const content = req.body;
 
