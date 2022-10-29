@@ -1,6 +1,6 @@
 local Incoming = { ... }
 local client = game:GetService("Players").LocalPlayer
-if not client then
+if not client then 
     return warn('wtf where is your player?')
 end
 if not Incoming[1] or not Incoming[2] then
