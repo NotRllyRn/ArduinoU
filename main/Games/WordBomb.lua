@@ -4,7 +4,7 @@ games_scripts = {
 		Detected = false,
 		check = function()
 			return replicatedS:FindFirstChild("Postie") and replicatedS:FindFirstChild("Network") and replicatedS:FindFirstChild("Products") and replicatedS:FindFirstChild("GameAssets")
-		end,
+		end, 
 		main = function(window, settings)
             local self = settings.GAMES["WB"].SETTINGS
             local Settings = {
