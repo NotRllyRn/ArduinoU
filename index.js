@@ -9,7 +9,7 @@ import fs from 'fs';
 const client = new Client({
     intents: ['GUILDS', 'DIRECT_MESSAGES', 'GUILD_MESSAGES', 'GUILD_MEMBERS'],
     partials: ['MESSAGE', 'CHANNEL']
-}); 
+});
 const yaris = new Yaris(process.env.YARISKEY);
 
 const __filename = fileURLToPath(import.meta.url);
