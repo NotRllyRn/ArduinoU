@@ -2,7 +2,7 @@
 
 --// obfuscate past here 
 
-local init;
+local init; 
 init = function()
 	local val0 = false
 	local val1 = true
