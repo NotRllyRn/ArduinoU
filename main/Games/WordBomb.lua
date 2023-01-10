@@ -1,5 +1,5 @@
 games_scripts = {
-	["WB"] = {
+	["WB"] = { 
 		name = 'Word Bomb',
 		Detected = false,
 		check = function()
