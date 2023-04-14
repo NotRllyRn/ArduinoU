@@ -1,3 +1,5 @@
+-- // outdated snd doesnt work anymore. some parts of the script work but not all.
+
 games_scripts = {
 	["RP"] = {
 		name = 'Rush Point',
