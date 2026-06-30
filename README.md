@@ -2,7 +2,7 @@
 
 This repository has been archived.
 
-# ArdunoU
+# ArduinoU
 
 A whitelist and roblox exploiting script hub
 
